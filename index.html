@@ -1,0 +1,130 @@
+<html>
+  <head>
+    <title>FollowerAnalyzer</title>
+    <meta charset="UTF-8">
+    <style>
+      body {
+        display: -webkit-flex;
+        -webkit-flex-direction: column;
+        background-color: #242424;
+        width: 100%;
+        height: 100%;
+        padding:0; 
+        margin:0;
+        font-size: 14pt;
+      }
+      #body-for-padding {
+        display: -webkit-flex;
+        -webkit-flex-direction: column;
+        height: 100%;
+        padding: 5;
+      }
+      #menu {
+        width: 100%;
+        display: flex;
+      }
+      button {
+        background: linear-gradient(#888 40%, #777 70%);
+        border: 1px solid #999;
+        border-radius: 3px;
+        padding: 5px 8px;
+        margin: 0px 3px;
+        outline: none;
+        white-space: nowrap;
+        -webkit-user-select: none;
+        cursor: pointer;
+        color: #fff;
+        text-shadow: -1px -1px 1px rgba(0,0,0,0.3);
+        text-align:left;
+        font-size: 10pt;
+        font-weight: 400;
+      }
+      button:not(:disabled):hover {
+        background: linear-gradient(#999 40%, #888 70%);
+      }
+      button:not(:disabled):active {
+        background: linear-gradient(#888 40%, #777 70%);
+      }
+      input {
+        flex:1;
+        -webkit-user-select: none;
+        margin: 0px 3px;
+      }
+      input, textarea {
+        box-shadow: 1px 1px 5px #ccc inset;
+        border: none;
+        padding: 3px;
+      }
+      [readonly] {
+        background: #bbb;
+      }
+      .followers {
+        display:flex;
+        width:300px;
+        margin:0 auto;
+      }
+      .follower {
+        border:0;
+        width:100px;
+      }
+      .follower.name
+      {
+        text-align: center;
+        vertical-align:middle;
+      }
+      .follower.abis1 {
+        display:flex;
+        margin:0 32px;
+      }
+      .follower.abis2 {
+        display:flex;
+        margin:0 14px;
+      }
+      .follower.abi
+      {
+        background-repeat: no-repeat;
+        background-size: 24px 24px;
+        background-position:center center;
+        width:36px;
+        height:36px;
+      }
+      .follower.countered
+      {
+        position:relative;
+        background:url(img/ability-countered.png) right bottom  no-repeat;
+        width: 40px;
+        height: 40px;
+      }
+      #questC {
+        color : #ccc;
+        vertical-align:middle;
+        height: 24px;
+        margin:6px;
+      }
+      #questC img {
+        width: 24px
+      }
+    </style>
+    <link href="list/list.css" rel="stylesheet" type="text/css">
+    <link href="tab/tab.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div id="body-for-padding">
+      <div id="menu">
+        <button id="refresh">重整</button>
+        <input type="text" id="file_path" readonly>
+        <button id="choose_file">檔案</button>
+      </div>
+
+      <div id="menuC" class="tabs-container"></div>
+      <div id="tabC" class="tabs-container" hidden></div>
+      <div id="questC" style="display:no"></div>
+      <div id="questListC" class="list-container" style="flex:1" hidden></div>
+      <div id="followerListC" class="list-container" style="flex:1" hidden></div>
+    </div>
+
+    <script src="tab/Tab.js"></script>
+    <script src="list/List.js"></script>
+    <script src="FollowerAnalyzer.js"></script>
+  </body>
+</html>

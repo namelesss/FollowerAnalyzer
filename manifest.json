@@ -1,0 +1,20 @@
+{
+  "name": "FollowerAnalyzer",
+  "version": "0.1",
+  "manifest_version": 2,
+  "minimum_chrome_version": "31",
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  "icons": { 
+    "16": "small.png",
+    "36":"medium.png",
+    "128":"large.png"
+  },
+  "permissions": [
+    {"fileSystem": ["retainEntries"]},
+    "storage"
+  ]
+}
