@@ -21,19 +21,37 @@ var questListC = new List(document.getElementById('questListC'),
     {key: "matchTrait", title:"特長", style:nameStyle}
     ]);
 
-var followerListC = new List(document.getElementById('followerListC'),
-    [{key: "name", title: "名稱", style:nameStyle, color:"nameColor"},
-    {key: "raceName", title: "種族", style:nameStyle},
-    {key: "specName", title: "職業", style:nameStyle},
-    {key: "level", title: "等級"},
-    {key: "iLevel", title: "裝等"},
+var sortFlag = 0;
+var sortFDB = function(ele) 
+{
+  var brothers = ele.parentNode.childNodes;
+  for (var i = 0; i < brothers.length; ++i)
+  {
+    if (ele.innerHTML.match(followerListTable[i].title))
+    {
+      sortFlag = (Math.abs(sortFlag) == (i + 1)) ? - sortFlag : (- (i + 1));
+      ele.innerHTML = followerListTable[i].title + ((sortFlag > 0) ? "△" : "▽");
+      FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[i].sortSeq); });
+    }
+    else
+      brothers[i].innerHTML = followerListTable[i].title;
+  }
+
+  followerListC.updateList();
+};
+var followerListTable = [{key: "name", title: "名稱", style:nameStyle, color:"nameColor"},
+    {key: "raceName", title: "種族", style:nameStyle, titleClicked:sortFDB, sortSeq:["raceName", "average", "id"]},
+    {key: "specName", title: "職業", style:nameStyle, titleClicked:sortFDB, sortSeq:["spec", "average", "id"]},
+    {key: "level", title: "等級", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
+    {key: "iLevel", title: "裝等", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "ability1", title: "技能1"},
     {key: "ability2", title: "技能2"},
     {key: "trait1", title: "特長1"},
     {key: "trait2", title: "特長2"},
     {key: "trait3", title: "特長3"},
-    {key: "count", title: "出場率", style:nameStyle},
-    ]);
+    {key: "count", title: "出場率", style:nameStyle, titleClicked:sortFDB, sortSeq:["average", "id"]}
+    ];
+var followerListC = new List(document.getElementById('followerListC'), followerListTable);
 
 var questC = document.getElementById('questC');
 
@@ -120,7 +138,7 @@ function handleFile(e)
     var follower = {};
     var abi = [], tra = [];  
     follower.name = str[1];
-    follower.race = str[0];
+    follower.id = str[0];
 
     follower.spec = parseInt(str[2]);
     follower.quality = parseInt(str[3]);
@@ -137,7 +155,7 @@ function handleFile(e)
     follower.count = "";
 
     follower.nameColor = QUALITY[follower.quality];
-    follower.raceName = (follower.race in RACE_A) ? RACE_A[follower.race] : follower.race;
+    follower.raceName = (follower.id in RACE_A) ? RACE_A[follower.id] : follower.race;
     follower.specName = SPEC[follower.spec];
     follower.ability1 = genImg(ABILITY[abi[0]]);
     follower.ability2 = (1 in abi) ? genImg(ABILITY[abi[1]]) : "";
@@ -288,6 +306,18 @@ window.addEventListener("load", function()
 });
 
 // UI indepentant functions
+function sortFunc(a, b, ascending, list)
+{
+  for (var i in list)
+  {
+    if (a[list[i]] == b[list[i]])
+      continue;
+    else
+      return ((a[list[i]] > b[list[i]])?ascending:-ascending);
+  }
+  return 0;
+}
+
 function matchEncounter(encounters, abilities)
 {
   var idx;

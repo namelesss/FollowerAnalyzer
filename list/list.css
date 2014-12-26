@@ -64,6 +64,10 @@
   text-decoration: none;
 }
 
+.list-container th[selected] {
+  color : red;
+}
+
 .list-container td:last-child, .list-container th:last-child {
   border: 0;
 }

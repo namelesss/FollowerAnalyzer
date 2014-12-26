@@ -12,7 +12,19 @@
   {
     var th = document.createElement("TH");
     th.innerHTML = header[i].title;
-    if (header[i].style) { th.setAttribute("style", header[i].style); }
+    if (header[i].style) 
+      th.setAttribute("style", header[i].style);
+    if (header[i].titleClicked)
+    {
+      th.titleClicked = header[i].titleClicked;
+      th.onclick = function(){
+        var brothers = this.parentNode.childNodes;
+        for (var i = 0; i < brothers.length; ++i)
+          brothers[i].removeAttribute("selected");
+        this.setAttribute("selected", "");
+        this.titleClicked(this)
+      }
+    }
     tr.appendChild(th);
   }
   thead.appendChild(tr);
@@ -38,15 +50,11 @@ List.prototype.updateList = function ()
       td.innerHTML = data[title.key];
 
       if (title.style) 
-      {
         td.setAttribute("style", title.style); 
-        if (this.titleKey)
-        {
-          td.setAttribute("title", data[this.titleKey]); 
-        }
-      }
       if (title.color)
         td.style.color = data[title.color] || title.color;
+      if (this.titleKey)
+        td.setAttribute("title", data[this.titleKey]); 
     }
   }
 }
