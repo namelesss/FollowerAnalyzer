@@ -19,7 +19,7 @@
         height: 100%;
         padding: 5;
       }
-      #menu {
+      .menu {
         width: 100%;
         display: flex;
       }
@@ -49,14 +49,42 @@
         flex:1;
         -webkit-user-select: none;
         margin: 0px 3px;
-      }
-      input, textarea {
         box-shadow: 1px 1px 5px #ccc inset;
         border: none;
         padding: 3px;
       }
       [readonly] {
         background: #bbb;
+      }
+      #cover{ 
+        position:fixed; 
+        top:0; 
+        left:0; 
+        background:rgba(0,0,0,0.6); 
+        z-index:5; 
+        width:100%; 
+        height:100%; 
+        display:none; 
+      }
+      #popup{
+        display: -webkit-flex;
+        -webkit-flex-direction: column;
+        background-color: #242424;
+        border:1px solid #999;
+        position:absolute;
+        left:50%;
+        top:50%;
+        margin-top:-200px;
+        margin-left:-320px;
+        width:640px;
+        height:400px;
+        padding:10px;
+      }
+      textarea {
+        flex:1;
+        resize:none;
+        margin-top:10px;
+        background: #bbb
       }
       .followers {
         display:flex;
@@ -110,10 +138,11 @@
   </head>
   <body>
     <div id="body-for-padding">
-      <div id="menu">
-        <button id="refresh">重整</button>
+      <div class="menu">
+        <button id="open">從字串</button>
+        <button id="choose_file">從檔案</button>
+        <button id="refresh">重讀檔案</button>
         <input type="text" id="file_path" readonly>
-        <button id="choose_file">檔案</button>
       </div>
 
       <div id="menuC" class="tabs-container"></div>
@@ -123,6 +152,16 @@
       <div id="followerListC" class="list-container" style="flex:1" hidden></div>
     </div>
 
+    <div id="cover">
+      <div id="popup">
+        <div class="menu">
+          <button id="from_string">開始計算</button>
+          <div style="flex:1"></div>
+          <button id="close">X</button>
+        </div>
+        <textarea id="input"></textarea>
+      </div>
+    </div>
     <script src="tab/Tab.js"></script>
     <script src="list/List.js"></script>
     <script src="FollowerAnalyzer.js"></script>

@@ -1,5 +1,3 @@
-var chooseFileButton = document.querySelector('#choose_file');
-var refreshButton = document.querySelector('#refresh');
 var menuC = new Tab(document.getElementById('menuC'), menuClickCallback);
 var tabC = new Tab(document.getElementById('tabC'), tabClickCallback);
 var menus_ = {
@@ -21,27 +19,12 @@ var questListC = new List(document.getElementById('questListC'),
     {key: "matchTrait", title:"特長", style:nameStyle}
     ]);
 
-var sortFlag = 0;
-var sortFDB = function(ele) 
-{
-  var brothers = ele.parentNode.childNodes;
-  for (var i = 0; i < brothers.length; ++i)
-  {
-    if (ele.innerHTML.match(followerListTable[i].title))
-    {
-      sortFlag = (Math.abs(sortFlag) == (i + 1)) ? - sortFlag : (- (i + 1));
-      ele.innerHTML = followerListTable[i].title + ((sortFlag > 0) ? "△" : "▽");
-      FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[i].sortSeq); });
-    }
-    else
-      brothers[i].innerHTML = followerListTable[i].title;
-  }
-
-  followerListC.updateList();
-};
-var followerListTable = [{key: "name", title: "名稱", style:nameStyle, color:"nameColor"},
+var followerListTable = [
+    {key: "name", title: "名稱", style:nameStyle, color:"nameColor",
+      titleClicked:sortFDB, sortSeq:["quality", "average", "id"]},
     {key: "raceName", title: "種族", style:nameStyle, titleClicked:sortFDB, sortSeq:["raceName", "average", "id"]},
     {key: "specName", title: "職業", style:nameStyle, titleClicked:sortFDB, sortSeq:["spec", "average", "id"]},
+    {key: "inactive", title: "停用", style:nameStyle, titleClicked:sortFDB, sortSeq:["inactive", "average", "id"]},
     {key: "level", title: "等級", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "iLevel", title: "裝等", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "ability1", title: "技能1"},
@@ -131,6 +114,7 @@ function handleFile(e)
      FOLLOWERDB.pop();
 
   // Fetch Data
+  if (result.length < 2) return;
   for (var i = 1; i < result.length; ++i)
   {
     var str = result[i].split(",");
@@ -153,6 +137,7 @@ function handleFile(e)
     follower.traits = tra;
     follower.countQuest = [0, 0, 0, 0];
     follower.count = "";
+    follower.inactive = (str[6] == "inactive") ? "☆" : "";
 
     follower.nameColor = QUALITY[follower.quality];
     follower.raceName = (follower.id in RACE_A) ? RACE_A[follower.id] : follower.race;
@@ -242,7 +227,7 @@ function loadFileEntry(_chosenEntry) {
     reader.readAsText(file);
     // Update pathname
     chrome.fileSystem.getDisplayPath(chosenEntry, function(path) {
-      document.querySelector('#file_path').value = path;
+      document.querySelector('#file_path').value = "檔案: " + path;
     });
   });
 }
@@ -271,12 +256,12 @@ function loadFileFromStorageEntry()
   });
 }
 
-refreshButton.addEventListener('click', function(e)
+document.querySelector('#refresh').addEventListener('click', function(e)
 {
   loadFileFromStorageEntry();
 });
 
-chooseFileButton.addEventListener('click', function(e) 
+document.querySelector('#choose_file').addEventListener('click', function(e) 
 {
   chrome.fileSystem.chooseEntry({type: 'openFile', 
                                  accepts: [{extensions: ["csv"]}],
@@ -293,6 +278,25 @@ chooseFileButton.addEventListener('click', function(e)
   });
 });
 
+var cover = document.getElementById('cover');
+var input = document.getElementById('input');
+document.querySelector('#open').addEventListener('click', function(e)
+{
+  input.value = "";
+  cover.style.display = "block";
+  input.focus();
+});
+document.querySelector('#close').addEventListener('click', function(e)
+{
+  cover.style.display = "none";
+});
+document.querySelector('#from_string').addEventListener('click', function(e)
+{
+  cover.style.display = "none";
+  handleFile({target:{result:input.value}});
+  document.querySelector('#file_path').value = "字串輸入";
+});
+
 window.addEventListener("load", function() 
 {
   if (launchData && launchData.items && launchData.items[0]) 
@@ -305,7 +309,24 @@ window.addEventListener("load", function()
   }
 });
 
-// UI indepentant functions
+var sortFlag = 0;
+function sortFDB (ele) 
+{
+  var brothers = ele.parentNode.childNodes;
+  for (var i = 0; i < brothers.length; ++i)
+  {
+    if (ele.innerHTML.match(followerListTable[i].title))
+    {
+      sortFlag = (Math.abs(sortFlag) == (i + 1)) ? - sortFlag : (- (i + 1));
+      ele.innerHTML = followerListTable[i].title + ((sortFlag > 0) ? "△" : "▽");
+      FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[i].sortSeq); });
+    }
+    else
+      brothers[i].innerHTML = followerListTable[i].title;
+  }
+
+  followerListC.updateList();
+};
 function sortFunc(a, b, ascending, list)
 {
   for (var i in list)
@@ -318,6 +339,7 @@ function sortFunc(a, b, ascending, list)
   return 0;
 }
 
+// UI indepentant functions
 function matchEncounter(encounters, abilities)
 {
   var idx;
