@@ -1,15 +1,5 @@
 var menuC = new Tab(document.getElementById('menuC'), menuClickCallback);
 var tabC = new Tab(document.getElementById('tabC'), tabClickCallback);
-var menus_ = {
-  missionMenu: {name:"645任務"},
-  followerMenu: {name:"追隨者"}
-};
-var tabs_ = {
-  quest1: {name:"任務1"},
-  quest2: {name:"任務2"},
-  quest3: {name:"任務3"},
-  quest4: {name:"任務4"}
-};
 
 var nameStyle = "text-align: left;padding-left: 10px";
 var questListC = new List(document.getElementById('questListC'),
@@ -24,7 +14,7 @@ var followerListTable = [
       titleClicked:sortFDB, sortSeq:["quality", "average", "id"]},
     {key: "raceName", title: "種族", style:nameStyle, titleClicked:sortFDB, sortSeq:["raceName", "average", "id"]},
     {key: "specName", title: "職業", style:nameStyle, titleClicked:sortFDB, sortSeq:["spec", "average", "id"]},
-    {key: "inactive", title: "停用", style:nameStyle, titleClicked:sortFDB, sortSeq:["inactive", "average", "id"]},
+    {key: "inactive", title: "停用", style:nameStyle, titleClicked:sortFDB, sortSeq:["active", "average", "id"]},
     {key: "level", title: "等級", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "iLevel", title: "裝等", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "ability1", title: "技能1"},
@@ -70,147 +60,23 @@ function menuClickCallback(menu)
   }
 }
 
-function genImg(img) 
-{ 
-  var t = (img.name) ? (" title='" + img.name + "'" ): ("");
-  return "<img src='img/" + img.img + ".jpg'" + t + ">"; 
-}
-function genMacthTable_follower_img(abi, countered)
-{
-  return "<div class='follower abi'"
-      + ((abi) ? " style=\"background-image:url(img/" 
-      + ABILITY[abi].img + ".jpg);\">" : ">")
-      + ((countered) ? "<div class='follower countered'></div>" : "")
-      + "</div>";
-}
-
-function genMacthTable_follower(f, matchedFlag)
-{
-  return "<div class='follower'>"
-    + "<div class='follower abis" + f.abilities.length + "'>"
-      + genMacthTable_follower_img(f.abilities[0], matchedFlag & 1)
-      + genMacthTable_follower_img(f.abilities[1], matchedFlag & 2)
-      + "</div>"
-    + "<div class='follower name' style='color:" + f.nameColor + "'>" + f.name + "</div>"
-      + "</div>";
-}
-function genMatchTable(matchData)
-{
-  var f1 = FOLLOWERDB[matchData.team[0]];
-  var f2 = FOLLOWERDB[matchData.team[1]];
-  var f3 = FOLLOWERDB[matchData.team[2]];
-  var table = "<div class='followers'>" 
-    + genMacthTable_follower(f1, matchData.matchedFlag[0])
-    + genMacthTable_follower(f2, matchData.matchedFlag[1])
-    + genMacthTable_follower(f3, matchData.matchedFlag[2])
-    + "</div>";
-  return table;
-}
-
 function handleFile(e)
 {
-  var result = ("" + e.target.result).split("\n");
   while(FOLLOWERDB.length > 0)
      FOLLOWERDB.pop();
+  var result = ("" + e.target.result).split("\n");
 
   // Fetch Data
   if (result.length < 2) return;
-  for (var i = 1; i < result.length; ++i)
-  {
-    var str = result[i].split(",");
-    if (!str[0]) continue;
-    var follower = {};
-    var abi = [], tra = [];  
-    follower.name = str[1];
-    follower.id = str[0];
+  genFollowerList(result);
+  FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
 
-    follower.spec = parseInt(str[2]);
-    follower.quality = parseInt(str[3]);
-    follower.level = parseInt(str[4]);
-    follower.iLevel = parseInt(str[5]);
-    if (str[7]) abi.push(parseInt(str[7]));
-    if (str[8]) abi.push(parseInt(str[8]));
-    if (str[9]) tra.push(parseInt(str[9]));
-    if (str[10]) tra.push(parseInt(str[10]));
-    if (str[11]) tra.push(parseInt(str[11]));
-    follower.abilities = abi;
-    follower.traits = tra;
-    follower.countQuest = [0, 0, 0, 0];
-    follower.count = "";
-    follower.inactive = (str[6] == "inactive") ? "☆" : "";
-
-    follower.nameColor = QUALITY[follower.quality];
-    follower.raceName = (follower.id in RACE_A) ? RACE_A[follower.id] : follower.race;
-    follower.specName = SPEC[follower.spec];
-    follower.ability1 = genImg(ABILITY[abi[0]]);
-    follower.ability2 = (1 in abi) ? genImg(ABILITY[abi[1]]) : "";
-    follower.trait1 = genImg(TRAIT[tra[0]]);
-    follower.trait2 = (1 in tra) ? genImg(TRAIT[tra[1]]) : "";
-    follower.trait3 = (2 in tra) ? genImg(TRAIT[tra[2]]) : "";
-    FOLLOWERDB.push(follower);
-  }
-  //FOLLOWERDB.sort(function(a, b) { return (b.level == a.level) ? (b.iLevel - a.iLevel) : (b.level - a.level); });
-  // Calculation
-  //var match = [];
-  var matchCount = [0, 0, 0, 0];  // dirty
-  for (var i = 0; i < QUESTS.length; ++i)
-  {
-    var bound = 1.0, MATCH_MAX = 15;
-    do
-    {
-      match[i] = [];
-      MatchMission(FOLLOWERDB, QUESTS[i], match[i], bound);
-      bound -= 0.05;
-    }while (match[i].length < MATCH_MAX);
-    // sort
-    match[i].sort(function(a, b) { return b.rate - a.rate; });
-
-    for (var j = 0; j < match[i].length; ++j)
-    {
-      var curMatch = match[i][j];
-
-      matchCount[i]++;
-      FOLLOWERDB[curMatch.team[0]].countQuest[i]++;
-      FOLLOWERDB[curMatch.team[1]].countQuest[i]++;
-      FOLLOWERDB[curMatch.team[2]].countQuest[i]++;
-
-      curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
-      curMatch.matchComp = genMatchTable(curMatch);
-      var unMatchHtml = "";
-      for (var abi in curMatch.unMatchList)
-        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]]) + " ";
-      curMatch.unMatch = unMatchHtml;
-      var matchTraitHtml = "";
-      for (var tar in curMatch.traitMatchList)
-        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]]) + " ";
-      curMatch.matchTrait = matchTraitHtml;
-    }
-  }
-  for (var f in FOLLOWERDB)
-  {
-    var average = 0; 
-    for (var i = 0; i < QUESTS.length; ++i)
-    {
-      var count = 0;
-      if (FOLLOWERDB[f].countQuest[i] == 0 || matchCount[i] == 0)
-         count = 0;
-      else
-        count = FOLLOWERDB[f].countQuest[i] * 100 / matchCount[i];
-      if (count > 50)
-        FOLLOWERDB[f].count += ("<span style='color:red'>" + count.toFixed(2) + "%</span> ");
-      else
-        FOLLOWERDB[f].count += (count).toFixed(2) + "% ";
-      average += count;
-    }
-    FOLLOWERDB[f].average = average/4;
-    FOLLOWERDB[f].count = FOLLOWERDB[f].average.toFixed(2) + "%(" + FOLLOWERDB[f].count + ")";
-
-  }
-  FOLLOWERDB.sort(function(a, b) { return (b.average - a.average);});
+  // Generate Match tab data
+  genMatchList();
 
   // Generate Output
-  menuC.createTab(menus_);
-  tabC.createTab(tabs_);
+  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"645任務"}});
+  tabC.createTab( { quest1: {name:"任務1"}, quest2: {name:"任務2"}, quest3: {name:"任務3"}, quest4: {name:"任務4"} });
   followerListC.createList(FOLLOWERDB);
 }
 
@@ -309,6 +175,45 @@ window.addEventListener("load", function()
   }
 });
 
+// HTML Generation Functions
+function genImg(img) 
+{ 
+  var t = (img.name) ? (" title='" + img.name + "'" ): ("");
+  return "<img src='img/" + img.img + ".jpg'" + t + ">"; 
+}
+function genMacthTable_follower_img(abi, countered)
+{
+  return "<div class='follower abi'"
+      + ((abi) ? " style=\"background-image:url(img/" 
+      + ABILITY[abi].img + ".jpg);\">" : ">")
+      + ((countered) ? "<div class='follower countered'></div>" : "")
+      + "</div>";
+}
+
+function genMacthTable_follower(f, matchedFlag)
+{
+  return "<div class='follower'>"
+    + "<div class='follower abis" + f.abilities.length + "'>"
+      + genMacthTable_follower_img(f.abilities[0], matchedFlag & 1)
+      + genMacthTable_follower_img(f.abilities[1], matchedFlag & 2)
+      + "</div>"
+    + "<div class='follower name' style='color:" + f.nameColor + "'>" + f.name + "</div>"
+      + "</div>";
+}
+function genMatchTable(matchData)
+{
+  var f1 = FOLLOWERDB[matchData.team[0]];
+  var f2 = FOLLOWERDB[matchData.team[1]];
+  var f3 = FOLLOWERDB[matchData.team[2]];
+  var table = "<div class='followers'>" 
+    + genMacthTable_follower(f1, matchData.matchedFlag[0])
+    + genMacthTable_follower(f2, matchData.matchedFlag[1])
+    + genMacthTable_follower(f3, matchData.matchedFlag[2])
+    + "</div>";
+  return table;
+}
+
+// Follower Sorting Functions
 var sortFlag = 0;
 function sortFDB (ele) 
 {
@@ -340,6 +245,104 @@ function sortFunc(a, b, ascending, list)
 }
 
 // UI indepentant functions
+function genFollowerList(dataArray)
+{
+  for (var i = 1; i < dataArray.length; ++i)
+  {
+    var str = dataArray[i].split(",");
+    if (!str[0]) continue;
+    var follower = {};
+    var abi = [], tra = [];  
+    follower.name = str[1];
+    follower.id = str[0];
+
+    follower.spec = parseInt(str[2]);
+    follower.quality = parseInt(str[3]);
+    follower.level = parseInt(str[4]);
+    follower.iLevel = parseInt(str[5]);
+    follower.active = (str[6] == "inactive") ? 0 : 1;
+    if (str[7]) abi.push(parseInt(str[7]));
+    if (str[8]) abi.push(parseInt(str[8]));
+    if (str[9]) tra.push(parseInt(str[9]));
+    if (str[10]) tra.push(parseInt(str[10]));
+    if (str[11]) tra.push(parseInt(str[11]));
+    follower.abilities = abi;
+    follower.traits = tra;
+    follower.countQuest = [0, 0, 0, 0];
+    follower.count = "";
+    follower.inactive = follower.active ? "" :"☆" ;
+
+    follower.nameColor = QUALITY[follower.quality];
+    follower.raceName = (follower.id in RACE_A) ? RACE_A[follower.id] : follower.race;
+    follower.specName = SPEC[follower.spec];
+    follower.ability1 = genImg(ABILITY[abi[0]]);
+    follower.ability2 = (1 in abi) ? genImg(ABILITY[abi[1]]) : "";
+    follower.trait1 = genImg(TRAIT[tra[0]]);
+    follower.trait2 = (1 in tra) ? genImg(TRAIT[tra[1]]) : "";
+    follower.trait3 = (2 in tra) ? genImg(TRAIT[tra[2]]) : "";
+    follower.count = "";
+    FOLLOWERDB.push(follower);
+  }
+}
+
+function genMatchList()
+{
+  var matchCount = [0, 0, 0, 0];  // dirty
+  for (var i = 0; i < QUESTS.length; ++i)
+  {
+    var bound = 1.0, MATCH_MAX = 15;
+    do
+    {
+      match[i] = [];
+      MatchMission(FOLLOWERDB, QUESTS[i], match[i], bound);
+      bound -= 0.05;
+    }while (match[i].length < MATCH_MAX);
+    // sort
+    match[i].sort(function(a, b) { return b.rate - a.rate; });
+
+    for (var j = 0; j < match[i].length; ++j)
+    {
+      var curMatch = match[i][j];
+
+      matchCount[i]++;
+      FOLLOWERDB[curMatch.team[0]].countQuest[i]++;
+      FOLLOWERDB[curMatch.team[1]].countQuest[i]++;
+      FOLLOWERDB[curMatch.team[2]].countQuest[i]++;
+
+      curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
+      curMatch.matchComp = genMatchTable(curMatch);
+      var unMatchHtml = "";
+      for (var abi in curMatch.unMatchList)
+        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]]) + " ";
+      curMatch.unMatch = unMatchHtml;
+      var matchTraitHtml = "";
+      for (var tar in curMatch.traitMatchList)
+        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]]) + " ";
+      curMatch.matchTrait = matchTraitHtml;
+    }
+  }
+
+  for (var f in FOLLOWERDB)
+  {
+    var average = 0; 
+    for (var i = 0; i < QUESTS.length; ++i)
+    {
+      var count = 0;
+      if (FOLLOWERDB[f].countQuest[i] == 0 || matchCount[i] == 0)
+         count = 0;
+      else
+        count = FOLLOWERDB[f].countQuest[i] * 100 / matchCount[i];
+      if (count > 50)
+        FOLLOWERDB[f].count += ("<span style='color:red'>" + count.toFixed(2) + "%</span> ");
+      else
+        FOLLOWERDB[f].count += (count).toFixed(2) + "% ";
+      average += count;
+    }
+    FOLLOWERDB[f].average = average/4;
+    FOLLOWERDB[f].count = FOLLOWERDB[f].average.toFixed(2) + "%(" + FOLLOWERDB[f].count + ")";
+  }
+}
+
 function matchEncounter(encounters, abilities)
 {
   var idx;
