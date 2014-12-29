@@ -7,7 +7,27 @@
   table.appendChild(tbody);
   container.appendChild(table);
   
-  this.thead = thead;
+  var tr = document.createElement("TR");
+  for (var i = 0; i < header.length; ++i)
+  {
+    var th = document.createElement("TH");
+    th.innerHTML = header[i].title;
+    if (header[i].style) 
+      th.setAttribute("style", header[i].style);
+    if (header[i].titleClicked)
+    {
+      th.titleClicked = header[i].titleClicked;
+      th.onclick = function(){
+        var brothers = this.parentNode.childNodes;
+        for (var i = 0; i < brothers.length; ++i)
+          brothers[i].removeAttribute("selected");
+        this.setAttribute("selected", "");
+        this.titleClicked(this)
+      }
+    }
+    tr.appendChild(th);
+  }
+  thead.appendChild(tr);
   this.tbody = tbody;
 
   this.container = container;
@@ -41,7 +61,6 @@ List.prototype.updateList = function ()
 
 List.prototype.clearList = function ()
 {
-  // Not implement and not used yet
 }
 
 List.prototype.createList = function (dataList, titleKey)
@@ -71,33 +90,6 @@ List.prototype.createList = function (dataList, titleKey)
 
     this.tbody.appendChild(tr);
   }
-
-  // reset thead
-  var tr = document.createElement("TR");
-  var header = this.header;
-  for (var i = 0; i < header.length; ++i)
-  {
-    var th = document.createElement("TH");
-    th.innerHTML = header[i].title;
-    if (header[i].style) 
-      th.setAttribute("style", header[i].style);
-    if (header[i].titleClicked)
-    {
-      th.titleClicked = header[i].titleClicked;
-      th.onclick = function(){
-        var brothers = this.parentNode.childNodes;
-        for (var i = 0; i < brothers.length; ++i)
-          brothers[i].removeAttribute("selected");
-        this.setAttribute("selected", "");
-        this.titleClicked(this)
-      }
-    }
-    tr.appendChild(th);
-  }
-  if (this.thead.firstChild)
-    this.thead.removeChild(this.thead.firstChild);
-  this.thead.appendChild(tr);
-  
   this.updateList();
 }
 
