@@ -192,12 +192,14 @@ function genMacthTable_follower_img(abi, countered)
 
 function genMacthTable_follower(f, matchedFlag)
 {
-  return "<div class='follower'>"
+  var lowILV = f.iLevel < 645;  // strick to 645?
+  return "<div class='follower'" + (lowILV ? "title='ilv:"+f.iLevel+"'": "") + ">"
     + "<div class='follower abis" + f.abilities.length + "'>"
       + genMacthTable_follower_img(f.abilities[0], matchedFlag & 1)
       + genMacthTable_follower_img(f.abilities[1], matchedFlag & 2)
       + "</div>"
-    + "<div class='follower name' style='color:" + f.nameColor + "'>" + f.name + "</div>"
+      + "<div class='follower name' style='color:" 
+      + ((lowILV)? "red" : f.nameColor) + "'>" + f.name + "</div>"
       + "</div>";
 }
 function genMatchTable(matchData)
