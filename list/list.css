@@ -50,6 +50,14 @@
   border-top: 1px solid #272727;
 }
 
+.list-container tr:hover {
+  background: #303030;
+}
+
+.list-container th {
+  background: #202020; /* overwrite tr:hover */
+}
+
 .list-container img {
   width: 24px;
 }
