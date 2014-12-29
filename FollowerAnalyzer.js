@@ -292,13 +292,18 @@ function genMatchList()
   var matchCount = [0, 0, 0, 0];  // dirty
   for (var i = 0; i < QUESTS.length; ++i)
   {
-    var bound = 1.0, MATCH_MAX = 15;
-    do
+    match[i] = [];
+    MatchMission(FOLLOWERDB, QUESTS[i], match[i], 1.0);
+    if (match[i].length == 0)
     {
-      match[i] = [];
-      MatchMission(FOLLOWERDB, QUESTS[i], match[i], bound);
-      bound -= 0.05;
-    }while (match[i].length < MATCH_MAX);
+      var bound = 0.95, MATCH_MAX = 10;
+      do
+      {
+        match[i] = [];
+        MatchMission(FOLLOWERDB, QUESTS[i], match[i], bound);
+        bound -= 0.05;
+      }while (match[i].length < MATCH_MAX);
+    }
     // sort
     match[i].sort(function(a, b) { return b.rate - a.rate; });
 
