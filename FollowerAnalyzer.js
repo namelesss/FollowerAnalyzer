@@ -25,11 +25,16 @@ var followerListTable = [
     {key: "count", title: "出場率", style:nameStyle, titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
 var followerListC = new List(document.getElementById('followerListC'), followerListTable);
+var abilityListC = new List(document.getElementById('abilityListC'), 
+    [{key: "abiComp", title:"技能組"},
+    {key: "followers", title:"追隨者"}
+    ]);
 
 var missionC = document.getElementById('missionC');
 
 var FOLLOWERDB = [];
 var match = [];
+var AbilityList = [];
 
 function tabClickCallback(tab)
 {
@@ -50,6 +55,7 @@ function menuClickCallback(menu)
     missionC.style.display = 'none';
     tabC.hide();
     missionListC.hide();
+    abilityListC.hide();
   }
   else if (menu == "missionMenu")
   {
@@ -57,6 +63,7 @@ function menuClickCallback(menu)
     missionC.style.display = 'block'
     tabC.show();
     missionListC.show();
+    abilityListC.hide();
   }
   else if (menu == "abilityMenu")
   {
@@ -64,6 +71,7 @@ function menuClickCallback(menu)
     missionC.style.display = 'none'
     tabC.hide();
     missionListC.hide();
+    abilityListC.show();
   }
 }
 
@@ -85,6 +93,7 @@ function handleFile(e)
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"645任務"}, abilityMenu:{name:"技能組"}});
   tabC.createTab( { quest1: {name:"任務1"}, quest2: {name:"任務2"}, quest3: {name:"任務3"}, quest4: {name:"任務4"} });
   followerListC.createList(FOLLOWERDB);
+  abilityListC.createList(AbilityList);
 }
 
 function loadFileEntry(_chosenEntry) {
