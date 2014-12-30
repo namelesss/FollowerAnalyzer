@@ -85,6 +85,7 @@ function handleFile(e)
 
   // Fetch Data
   if (result.length < 2) return;
+  initAbilityList();
   genFollowerList(result);
   FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
 
@@ -191,13 +192,11 @@ window.addEventListener("load", function()
   {
     loadFileFromStorageEntry();
   }
-
-  // AbilityList generated after loading
-  initAbilityList();
 });
 
 function initAbilityList()
 {
+  AbilityList = [];
   for (var a1 = 1; a1 <= 10; ++a1)
   {
     if (a1 == 5) continue;
