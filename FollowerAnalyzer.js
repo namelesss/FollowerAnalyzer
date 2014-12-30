@@ -26,8 +26,10 @@ var followerListTable = [
     ];
 var followerListC = new List(document.getElementById('followerListC'), followerListTable);
 var abilityListC = new List(document.getElementById('abilityListC'), 
-    [{key: "abiComp", title:"技能組"},
-    {key: "followers", title:"追隨者"}
+    [{key: "abiComp", title:"技能組", style:"width:80px"},
+    {key: "followers", title:"追隨者", style:nameStyle},
+    {key:"possible",title:"可期望名單", style:nameStyle},
+    {key:"spec",title:"可能職業", style:nameStyle}
     ]);
 
 var missionC = document.getElementById('missionC');
@@ -189,14 +191,42 @@ window.addEventListener("load", function()
   {
     loadFileFromStorageEntry();
   }
+
+  // AbilityList generated after loading
+  initAbilityList();
 });
 
-// HTML Generation Functions
-function genImg(img) 
-{ 
-  var t = (img.name) ? (" title='" + img.name + "'" ): ("");
-  return "<img src='img/" + img.img + ".jpg'" + t + ">"; 
+function initAbilityList()
+{
+  for (var a1 = 1; a1 <= 10; ++a1)
+  {
+    if (a1 == 5) continue;
+    for (var a2 = a1+1; a2 <= 10; ++a2)
+    {
+      if (a2 == 5) continue;
+
+      var s = "";
+      for (var i in SPEC)
+        if ((SPEC[i].counters.indexOf(a1) >= 0) && (SPEC[i].counters.indexOf(a2) >= 0))
+        {
+          if (s) s+=",";
+          s+=SPEC[i].name;
+        }
+      if (s) s = "<span style='font-size:30%'>" + s + "</span>";
+      AbilityList.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
+        followers:"", possible:"",spec:s});
+    }
+  }
+  AbilityList.sort(function(a,b){return a.spec.length - b.spec.length;});
 }
+
+// HTML Generation Functions
+function genImg(obj) 
+{ 
+  var t = (obj.name) ? (" title='" + obj.name + "'" ): ("");
+  return "<img src='img/" + obj.img + ".jpg'" + t + ">"; 
+}
+
 function genMacthTable_follower_img(abi, countered)
 {
   return "<div class='follower abi'"
@@ -263,6 +293,8 @@ function sortFunc(a, b, ascending, list)
 }
 
 // UI indepentant functions
+//
+// Fetch follower data from input array
 function genFollowerList(dataArray)
 {
   for (var i = 1; i < dataArray.length; ++i)
@@ -300,7 +332,30 @@ function genFollowerList(dataArray)
     follower.trait3 = (2 in tra) ? genImg(TRAIT[tra[2]]) : "";
     follower.count = "";
     FOLLOWERDB.push(follower);
+
+    // add to AbilityList
+    for (var a = 0; a < AbilityList.length; ++a)
+      if (abi.length > 1)
+      {
+        if (abi[0] > abi[1]) {abi = [abi[1], abi[0]];}
+        if (abi[0] == AbilityList[a].abis[0] && abi[1] == AbilityList[a].abis[1])
+          appenedFollower(AbilityList[a], "followers", follower);
+      }
+      else
+      {
+        if (abi[0] == AbilityList[a].abis[0] && SPEC[follower.spec].counters.indexOf(AbilityList[a].abis[1]) >= 0)
+          appenedFollower(AbilityList[a], "possible", follower);
+        else if (abi[0] == AbilityList[a].abis[1] && SPEC[follower.spec].counters.indexOf(AbilityList[a].abis[0]) >= 0)
+          appenedFollower(AbilityList[a], "possible", follower);
+      }
   }
+}
+
+function appenedFollower(item, key, follower)
+{
+  if (item[key])
+    item[key] += " , ";
+  item[key] += "<span style='color:" + follower.nameColor + "'>" + follower.name + "</span>";
 }
 
 function genMatchList()
