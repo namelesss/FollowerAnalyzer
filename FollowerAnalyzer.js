@@ -2,7 +2,7 @@ var menuC = new Tab(document.getElementById('menuC'), menuClickCallback);
 var tabC = new Tab(document.getElementById('tabC'), tabClickCallback);
 
 var nameStyle = "text-align: left;padding-left: 10px";
-var questListC = new List(document.getElementById('questListC'),
+var missionListC = new List(document.getElementById('missionListC'),
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
@@ -26,7 +26,7 @@ var followerListTable = [
     ];
 var followerListC = new List(document.getElementById('followerListC'), followerListTable);
 
-var questC = document.getElementById('questC');
+var missionC = document.getElementById('missionC');
 
 var FOLLOWERDB = [];
 var match = [];
@@ -35,11 +35,11 @@ function tabClickCallback(tab)
 {
   var idx = parseInt(tab.charAt(tab.length - 1)) - 1;
 
-  questListC.createList(match[idx]);
+  missionListC.createList(match[idx]);
   var h = genImg(TRAIT[QUESTS[idx].type]) + " + ";
   for (var e in QUESTS[idx].encounters)
     h += genImg(ABILITY[QUESTS[idx].encounters[e]]) + " ";
-  questC.innerHTML = h;
+  missionC.innerHTML = h;
 }
 
 function menuClickCallback(menu)
@@ -47,16 +47,23 @@ function menuClickCallback(menu)
   if (menu == "followerMenu")
   {
     followerListC.show();
-    questC.style.display = 'none';
+    missionC.style.display = 'none';
     tabC.hide();
-    questListC.hide();
+    missionListC.hide();
   }
-  else
+  else if (menu == "missionMenu")
   {
     followerListC.hide();
-    questC.style.display = 'block'
+    missionC.style.display = 'block'
     tabC.show();
-    questListC.show();
+    missionListC.show();
+  }
+  else if (menu == "abilityMenu")
+  {
+    followerListC.hide();
+    missionC.style.display = 'none'
+    tabC.hide();
+    missionListC.hide();
   }
 }
 
@@ -75,7 +82,7 @@ function handleFile(e)
   genMatchList();
 
   // Generate Output
-  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"645任務"}});
+  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"645任務"}, abilityMenu:{name:"技能組"}});
   tabC.createTab( { quest1: {name:"任務1"}, quest2: {name:"任務2"}, quest3: {name:"任務3"}, quest4: {name:"任務4"} });
   followerListC.createList(FOLLOWERDB);
 }
