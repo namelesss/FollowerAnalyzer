@@ -6,7 +6,8 @@ var missionListC = new List(document.getElementById('missionListC'),
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
-    {key: "matchTrait", title:"特長", style:nameStyle}
+    {key: "matchTrait", title:"特長", style:nameStyle},
+    {key: "qTime", title:"任務時間", style:nameStyle}
     ]);
 
 var followerListTable = [
@@ -396,6 +397,7 @@ function genMatchList()
       for (var tar in curMatch.traitMatchList)
         matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]]) + " ";
       curMatch.matchTrait = matchTraitHtml;
+      curMatch.qTime = curMatch.questTime + " 小時";
     }
   }
 
@@ -436,48 +438,54 @@ function matchEncounter(encounters, abilities)
   return matched;
 }
 
-function successRate(quest, numUnMatch, followers, traitMatchList)
+function successRate(quest, numUnMatch, followers, matchInfo)
 {
   var needNumAbilities = quest.encounters.length;
   var base = quest.encounters.length * 3 + 3; // 3-man Raid Specific
   var abiMatch = needNumAbilities - numUnMatch;
+  var traitMatchList = [];
+  var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0;
 
+  var raceMatch = 0;
   for (var f in followers)
   {
-    // Encounter Type Match
-    var typeMatch = 0;
-    for (var t in followers[f].traits)
-      if (followers[f].traits[t] == quest.type)
-        typeMatch = 1; // not ++
-    if (typeMatch == 1 ) 
-      traitMatchList.push(quest.type);
-    
-    // Success rate plus
+    // Normal Trait Match
     for (var t in followers[f].traits)
     {
-      if (followers[f].traits[t] == 201)
+      var trait = followers[f].traits[t];
+      if (trait == quest.type) // Encounter Type Match
+        traitMatchList.push(quest.type);
+      else if (trait == 201) // Combat Experience
         traitMatchList.push(201);
-      if (quest.time > 7 && followers[f].traits[t] == 76)
-        traitMatchList.push(76);
-      else if (quest.time < 7 && followers[f].traits[t] == 77)
-        traitMatchList.push(77);
-    }
-    var traitMatch = traitMatchList.length;
-
-    // Race Match
-    var raceMatch = 0;
-    for (var t in followers[f].traits)
-    {
-      var r = followers[f].traits[t];
-      if (r in RACE_MATCH)
-        if (RACE_MATCH[r] == followers[(f+1)%3].raceName || RACE_MATCH[r] == followers[(f+2)%3].raceName)
+      else if (trait == 221) // Epic Mount
+        numEpicMount++;
+      else if (trait == 76) // High Stamina
+        numHighStamina++;
+      else if (trait == 77) // Burst of Power
+        numBurstPower++;
+      else if (trait in RACE_MATCH)
+        if (RACE_MATCH[trait] == followers[(f+1)%3].raceName 
+            || RACE_MATCH[trait] == followers[(f+2)%3].raceName)
         {
           raceMatch++;
-          traitMatchList.push(r);
+          traitMatchList.push(trait);
         }
     }
   }
-  return (3 * abiMatch + traitMatch + raceMatch * 1.5 + 3) / base;
+  var qTime = quest.time / Math.pow(2,numEpicMount);
+  if (qTime > 7)
+    for (var i = 0; i < numHighStamina; ++i)
+      traitMatchList.push(76);
+  else
+    for (var i = 0; i < numBurstPower; ++i)
+      traitMatchList.push(77);
+  var traitMatch = traitMatchList.length; // race included
+  for (var i = 0; i < numEpicMount; ++i)
+    traitMatchList.push(221);
+
+  matchInfo.traitMatchList = traitMatchList;
+  matchInfo.questTime = qTime;
+  return (3 * abiMatch + traitMatch + raceMatch * 0.5 + 3) / base;
 }
 
 var only100 = true;
@@ -502,8 +510,8 @@ function MatchMission(data, quest, match, threshold)
         var encLeft3 = encLeft2.slice(0);
         var matchedFlag3 = matchEncounter(encLeft3, data[c].abilities);
         
-        var traitMatch = [];
-        var rate = successRate(quest, encLeft3.length, [data[a], data[b], data[c]], traitMatch);
+        var matchInfo = {};
+        var rate = successRate(quest, encLeft3.length, [data[a], data[b], data[c]], matchInfo);
 
         if (rate < threshold)
           continue;
@@ -512,7 +520,8 @@ function MatchMission(data, quest, match, threshold)
             matchedFlag:[matchedFlag1, matchedFlag2, matchedFlag3],
             rate:rate, 
             unMatchList:encLeft3, 
-            traitMatchList:traitMatch});
+            questTime:matchInfo.questTime,
+            traitMatchList:matchInfo.traitMatchList});
       }
     }
   }
