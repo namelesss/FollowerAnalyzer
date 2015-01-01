@@ -238,7 +238,7 @@ function genMacthTable_follower_img(abi, countered)
 {
   return "<div class='follower abi'"
       + ((abi) ? " style=\"background-image:url(img/" 
-      + ABILITY[abi].img + ".jpg);\">" : ">")
+        + ABILITY[abi].img + ".jpg);\">" : ">")
       + ((countered) ? "<div class='follower countered'></div>" : "")
       + "</div>";
 }
@@ -249,7 +249,7 @@ function genMacthTable_follower(f, matchedFlag)
   return "<div class='follower'" + (lowILV ? "title='ilv:"+f.iLevel+"'": "") + ">"
     + "<div class='follower abis" + f.abilities.length + "'>"
       + genMacthTable_follower_img(f.abilities[0], matchedFlag & 1)
-      + genMacthTable_follower_img(f.abilities[1], matchedFlag & 2)
+      + ((f.abilities.length == 2) ? genMacthTable_follower_img(f.abilities[1], matchedFlag & 2) : "")
       + "</div>"
       + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:25%'" : "")
       + ">" + genMacthTable_follower_name(f, lowILV) + "</div>"
@@ -266,6 +266,12 @@ function genMatchTable(matchData)
     + genMacthTable_follower(f3, matchData.matchedFlag[2])
     + "</div>";
   return table;
+}
+
+function genTime(hours, green)
+{
+
+  return "<span" + (green ? " style='color:Lime '" : "") + ">" + hours + "小時" + "</span>";
 }
 
 // Follower Sorting Functions
@@ -404,10 +410,10 @@ function genMatchList()
       for (var tar in curMatch.traitMatchList)
         matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]]) + " ";
       curMatch.matchTrait = matchTraitHtml;
-      curMatch.qTime = curMatch.questTime + " 小時";
+      curMatch.qTime = genTime(curMatch.questTime, (curMatch.traitMatchList.indexOf(221) >= 0));
     }
   }
-
+  // fill average to FOLLOWERDB
   for (var f in FOLLOWERDB)
   {
     var average = 0; 
