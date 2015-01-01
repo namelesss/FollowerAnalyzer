@@ -227,6 +227,13 @@ function genImg(obj)
   return "<img src='img/" + obj.img + ".jpg'" + t + ">"; 
 }
 
+function genMacthTable_follower_name(follower, lowILV)
+{
+  return "<span style='color:" + follower.nameColor + "'>" + follower.name + "</span>"
+    + "<span style='color:" + ((lowILV) ? "Brown" : "") + "'>"
+    + "(" + follower.iLevel + ")</span>";
+}
+
 function genMacthTable_follower_img(abi, countered)
 {
   return "<div class='follower abi'"
@@ -244,8 +251,8 @@ function genMacthTable_follower(f, matchedFlag)
       + genMacthTable_follower_img(f.abilities[0], matchedFlag & 1)
       + genMacthTable_follower_img(f.abilities[1], matchedFlag & 2)
       + "</div>"
-      + "<div class='follower name' style='color:" 
-      + ((lowILV)? "red" : f.nameColor) + "'>" + f.name + "</div>"
+      + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:25%'" : "")
+      + ">" + genMacthTable_follower_name(f, lowILV) + "</div>"
       + "</div>";
 }
 function genMatchTable(matchData)
