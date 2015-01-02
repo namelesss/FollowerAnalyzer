@@ -116,18 +116,35 @@
       }
       .follower.abi
       {
-        background-repeat: no-repeat;
-        background-size: 24px 24px;
-        background-position:center center;
+        position: relative;
+        z-index: 10;
+        background-image:url(img/garrisonability36.png);
+        background-size: 36px 36px;
+        background-repeat:no-repeat;
         width:36px;
         height:36px;
+
+      }
+      .follower ins
+      {
+        display:block;
+        position: absolute;
+        z-index:5;
+        background-repeat: no-repeat;
+        background-size: 20px 20px;
+        top:8px;
+        left:8px;
+        width:20px;
+        height:20px;
       }
       .follower.countered
       {
         position:relative;
         background:url(img/ability-countered.png) right bottom  no-repeat;
-        width: 40px;
-        height: 40px;
+        background-size: 23px 20px;
+        width: 48px;
+        height: 36px;
+        z-index:10;
       }
       #missionC {
         color : #ccc;

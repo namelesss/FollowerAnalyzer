@@ -7,7 +7,7 @@ var missionListC = new List(document.getElementById('missionListC'),
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
     {key: "matchTrait", title:"特長", style:nameStyle},
-    {key: "qTime", title:"任務時間", style:nameStyle}
+    {key: "qTime", title:"任務時間"}
     ]);
 
 var followerListTable = [
@@ -234,11 +234,10 @@ function genMacthTable_follower_name(follower, lowILV)
     + "(" + follower.iLevel + ")</span>";
 }
 
-function genMacthTable_follower_img(abi, countered)
+function genMacthTable_follower_abi_img(abi, countered)
 {
-  return "<div class='follower abi'"
-      + ((abi) ? " style=\"background-image:url(img/" 
-        + ABILITY[abi].img + ".jpg);\">" : ">")
+  return "<div class='follower abi'>"
+      + ((abi) ? "<ins style=\"background-image:url(img/" + ABILITY[abi].img + ".jpg);\"></ins>" : "")
       + ((countered) ? "<div class='follower countered'></div>" : "")
       + "</div>";
 }
@@ -246,10 +245,10 @@ function genMacthTable_follower_img(abi, countered)
 function genMacthTable_follower(f, matchedFlag)
 {
   var lowILV = f.iLevel < 645;  // strick to 645?
-  return "<div class='follower'" + (lowILV ? "title='ilv:"+f.iLevel+"'": "") + ">"
+  return "<div class='follower'>"
     + "<div class='follower abis" + f.abilities.length + "'>"
-      + genMacthTable_follower_img(f.abilities[0], matchedFlag & 1)
-      + ((f.abilities.length == 2) ? genMacthTable_follower_img(f.abilities[1], matchedFlag & 2) : "")
+      + genMacthTable_follower_abi_img(f.abilities[0], matchedFlag & 1)
+      + ((f.abilities.length == 2) ? genMacthTable_follower_abi_img(f.abilities[1], matchedFlag & 2) : "")
       + "</div>"
       + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:25%'" : "")
       + ">" + genMacthTable_follower_name(f, lowILV) + "</div>"
