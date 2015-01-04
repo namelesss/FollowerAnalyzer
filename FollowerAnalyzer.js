@@ -23,7 +23,7 @@ var followerListTable = [
     {key: "trait1", title: "特長1"},
     {key: "trait2", title: "特長2"},
     {key: "trait3", title: "特長3"},
-    {key: "count", title: "出場率", style:nameStyle, titleClicked:sortFDB, sortSeq:["average", "id"]}
+    {key: "countOutput", title: "出場率", style:nameStyle, titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
 var followerListC = new List(document.getElementById('followerListC'), followerListTable);
 var abilityListC = new List(document.getElementById('abilityListC'), 
@@ -38,15 +38,17 @@ var missionC = document.getElementById('missionC');
 var FOLLOWERDB = [];
 var match = [];
 var AbilityList = [];
+var curMission;
 
 function tabClickCallback(tab)
 {
-  var idx = parseInt(tab.charAt(tab.length - 1)) - 1;
+  //var idx = parseInt(tab.charAt(tab.length - 1)) - 1;
+  var idx = parseInt(tab);
 
   missionListC.createList(match[idx]);
-  var h = genImg(TRAIT[QUESTS[idx].type]) + " + ";
-  for (var e in QUESTS[idx].encounters)
-    h += genImg(ABILITY[QUESTS[idx].encounters[e]]) + " ";
+  var h = ((curMission[idx].type != 0) ? (genImg(TRAIT[curMission[idx].type]) + " + ") : "");
+  for (var e in curMission[idx].encounters)
+    h += genImg(ABILITY[curMission[idx].encounters[e]]) + " ";
   missionC.innerHTML = h;
 }
 
@@ -94,8 +96,8 @@ function handleFile(e)
   genMatchList();
 
   // Generate Output
-  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"645任務"}, abilityMenu:{name:"技能組"}});
-  tabC.createTab( { quest1: {name:"任務1"}, quest2: {name:"任務2"}, quest3: {name:"任務3"}, quest4: {name:"任務4"} });
+  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
+  tabC.createTab( { 0: {name:"任務1"}, 1: {name:"任務2"}, 2: {name:"任務3"}, 3: {name:"任務4"} });
   followerListC.createList(FOLLOWERDB);
   abilityListC.createList(AbilityList);
 }
@@ -182,7 +184,29 @@ document.querySelector('#from_string').addEventListener('click', function(e)
   handleFile({target:{result:input.value}});
   document.querySelector('#file_path').value = "字串輸入";
 });
+var missionType = document.getElementById('missionType');
+missionType.addEventListener('change', function(e)
+{
+  for (var i = 0; i < MISSIONS.length; ++i)
+  {
+    var m = MISSIONS[i];
+    if (m.type == e.target.value)
+    {
+      curMission = m.list;
+      genMatchList();
 
+      var tabs = {};
+      for (var j = 0; j < m.list.length; ++j)
+        tabs[j] = {name:("任務"+(j+1))};
+      tabC.createTab(tabs);
+      if (sortTitleIdx >= 0)
+        FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
+      followerListC.updateList();
+
+      return;
+    }
+  }
+});
 window.addEventListener("load", function() 
 {
   if (launchData && launchData.items && launchData.items[0]) 
@@ -193,6 +217,13 @@ window.addEventListener("load", function()
   {
     loadFileFromStorageEntry();
   }
+  for (var i in MISSIONS)
+  {
+    var option = document.createElement("option");
+    option.text = MISSIONS[i].type;
+    missionType.add(option);
+  }
+  curMission = MISSIONS[0].list;
 });
 
 function initAbilityList()
@@ -275,13 +306,16 @@ function genTime(hours, green)
 
 // Follower Sorting Functions
 var sortFlag = 0;
+var sortTitleIdx = -1;
 function sortFDB (ele) 
 {
+  sortTitleIdx = -1;
   var brothers = ele.parentNode.childNodes;
   for (var i = 0; i < brothers.length; ++i)
   {
     if (ele.innerHTML.match(followerListTable[i].title))
     {
+      sortTitleIdx = i;
       sortFlag = (Math.abs(sortFlag) == (i + 1)) ? - sortFlag : (- (i + 1));
       ele.innerHTML = followerListTable[i].title + ((sortFlag > 0) ? "△" : "▽");
       FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[i].sortSeq); });
@@ -330,8 +364,7 @@ function genFollowerList(dataArray)
     if (str[11]) tra.push(parseInt(str[11]));
     follower.abilities = abi;
     follower.traits = tra;
-    follower.countQuest = [0, 0, 0, 0];
-    follower.count = "";
+    follower.countQuest = [];
     follower.inactive = follower.active ? "" :"☆" ;
 
     follower.nameColor = QUALITY[follower.quality];
@@ -342,7 +375,7 @@ function genFollowerList(dataArray)
     follower.trait1 = genImg(TRAIT[tra[0]]);
     follower.trait2 = (1 in tra) ? genImg(TRAIT[tra[1]]) : "";
     follower.trait3 = (2 in tra) ? genImg(TRAIT[tra[2]]) : "";
-    follower.count = "";
+    follower.countOutput = "";
     FOLLOWERDB.push(follower);
 
     // add to AbilityList
@@ -372,18 +405,22 @@ function appenedFollower(item, key, follower)
 
 function genMatchList()
 {
-  var matchCount = [0, 0, 0, 0];  // dirty
-  for (var i = 0; i < QUESTS.length; ++i)
+  var matchCount = [];
+  for (var i = 0; i < curMission.length; ++i)
   {
     match[i] = [];
-    MatchMission(FOLLOWERDB, QUESTS[i], match[i], 1.0);
+    matchCount[i] = 0;
+    for (var f = 0; f < FOLLOWERDB.length; ++f)
+      FOLLOWERDB[f].countQuest[i] = 0;
+
+    MatchMission(FOLLOWERDB, curMission[i], match[i], 1.0);
     if (match[i].length == 0)
     {
       var bound = 0.95, MATCH_MAX = 10;
       do
       {
         match[i] = [];
-        MatchMission(FOLLOWERDB, QUESTS[i], match[i], bound);
+        MatchMission(FOLLOWERDB, curMission[i], match[i], bound);
         bound -= 0.05;
       }while (match[i].length < MATCH_MAX);
     }
@@ -416,7 +453,8 @@ function genMatchList()
   for (var f in FOLLOWERDB)
   {
     var average = 0; 
-    for (var i = 0; i < QUESTS.length; ++i)
+    FOLLOWERDB[f].countOutput = "";
+    for (var i = 0; i < curMission.length; ++i)
     {
       var count = 0;
       if (FOLLOWERDB[f].countQuest[i] == 0 || matchCount[i] == 0)
@@ -424,13 +462,13 @@ function genMatchList()
       else
         count = FOLLOWERDB[f].countQuest[i] * 100 / matchCount[i];
       if (count > 50)
-        FOLLOWERDB[f].count += ("<span style='color:red'>" + count.toFixed(2) + "%</span> ");
+        FOLLOWERDB[f].countOutput += ("<span style='color:red'>" + count.toFixed(2) + "%</span> ");
       else
-        FOLLOWERDB[f].count += (count).toFixed(2) + "% ";
+        FOLLOWERDB[f].countOutput += (count).toFixed(2) + "% ";
       average += count;
     }
     FOLLOWERDB[f].average = average/4;
-    FOLLOWERDB[f].count = FOLLOWERDB[f].average.toFixed(2) + "%(" + FOLLOWERDB[f].count + ")";
+    FOLLOWERDB[f].countOutput = FOLLOWERDB[f].average.toFixed(2) + "%(" + FOLLOWERDB[f].countOutput + ")";
   }
 }
 
@@ -540,11 +578,18 @@ function MatchMission(data, quest, match, threshold)
 }
 
 
-var QUESTS = [
-  { type:48, encounters:[10,8,2,6,9,1], time:8}, //trait 227,228?
-  { type:49, encounters:[1,9,6,8,9,10], time:8},
-  { type:38, encounters:[2,10,7,4,9,10], time:8},
-  { type:40, encounters:[1,3,3,6,7,4], time:8}
+var MISSIONS = [
+  { type:"天槌團隊任務", iLevel:645, rewards:"天槌寶箱", list:[
+      { type:48, encounters:[10,8,2,6,9,1], time:8}, //trait 227,228?
+      { type:49, encounters:[1,9,6,8,9,10], time:8},
+      { type:38, encounters:[2,10,7,4,9,10], time:8},
+      { type:40, encounters:[1,3,3,6,7,4], time:8}] },
+  { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
+      { type:38, encounters:[6,2,8,7], time:24}, //trait 227,228?
+      { type:0, encounters:[2,1,10,3], time:24},
+      { type:39, encounters:[4,1,2,7,9], time:24},
+      { type:0, encounters:[3,7,8,6], time:24},
+      { type:42, encounters:[8,4,3,6,8], time:24} ] }
 ];
 
 var QUALITY = [

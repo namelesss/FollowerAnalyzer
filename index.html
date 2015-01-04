@@ -86,6 +86,12 @@
         margin-top:10px;
         background: #bbb
       }
+      #missionType {
+        margin:18px 10px 2px 3px;
+        height:25px;
+        width:150px;
+        background-color:#ccc;
+      }
       .followers {
         display:flex;
         width:660px;
@@ -168,7 +174,10 @@
         <input type="text" id="file_path" readonly>
       </div>
 
-      <div id="menuC" class="tabs-container"></div>
+      <div class="menu">
+        <select id="missionType"></select>
+        <div id="menuC" class="tabs-container"></div>
+      </div>
       <div id="tabC" class="tabs-container" hidden></div>
       <div id="missionC" style="display:no"></div>
       <div id="missionListC" class="list-container" style="flex:1" hidden></div>
