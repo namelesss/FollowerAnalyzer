@@ -590,7 +590,7 @@ var MISSIONS = [
       { type:39, encounters:[4,1,2,7,9], time:24},
       { type:0, encounters:[3,7,8,6], time:24},
       { type:42, encounters:[8,4,3,6,8], time:24}] },
-  { type:"橘戒二階符文", iLevel:645, rewards:"天槌寶箱", list:[
+  { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
       { type:36, encounters:[4,9,8,2,3], time:24},
       { type:45, encounters:[7,2,3,9,2,3], time:24},
       { type:0, encounters:[1,8,4,7,6,2], time:24},
