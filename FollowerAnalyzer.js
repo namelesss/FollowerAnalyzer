@@ -585,11 +585,18 @@ var MISSIONS = [
       { type:38, encounters:[2,10,7,4,9,10], time:8},
       { type:40, encounters:[1,3,3,6,7,4], time:8}] },
   { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
-      { type:38, encounters:[6,2,8,7], time:24}, //trait 227,228?
+      { type:38, encounters:[6,2,8,7], time:24},
       { type:0, encounters:[2,1,10,3], time:24},
       { type:39, encounters:[4,1,2,7,9], time:24},
       { type:0, encounters:[3,7,8,6], time:24},
-      { type:42, encounters:[8,4,3,6,8], time:24} ] }
+      { type:42, encounters:[8,4,3,6,8], time:24}] },
+  { type:"橘戒二階符文", iLevel:645, rewards:"天槌寶箱", list:[
+      { type:36, encounters:[4,9,8,2,3], time:24},
+      { type:45, encounters:[7,2,3,9,2,3], time:24},
+      { type:0, encounters:[1,8,4,7,6,2], time:24},
+      { type:49, encounters:[8,6,3,9,2,3], time:24},
+      { type:9, encounters:[9,6,1,9,3,2], time:24},
+      { type:4, encounters:[7,3,1,2,10,6], time:24}] }
 ];
 
 var QUALITY = [
