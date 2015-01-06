@@ -92,14 +92,11 @@ function handleFile(e)
   genFollowerList(result);
   FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
 
-  // Generate Match tab data
-  genMatchList();
 
-  // Generate Output
-  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
-  tabC.createTab( { 0: {name:"任務1"}, 1: {name:"任務2"}, 2: {name:"任務3"}, 3: {name:"任務4"} });
   followerListC.createList(FOLLOWERDB);
   abilityListC.createList(AbilityList);
+  // Generate Match tab data
+  selectMission(missionType.value);
 }
 
 function loadFileEntry(_chosenEntry) {
@@ -185,12 +182,12 @@ document.querySelector('#from_string').addEventListener('click', function(e)
   document.querySelector('#file_path').value = "字串輸入";
 });
 var missionType = document.getElementById('missionType');
-missionType.addEventListener('change', function(e)
+function selectMission(type)
 {
   for (var i = 0; i < MISSIONS.length; ++i)
   {
     var m = MISSIONS[i];
-    if (m.type == e.target.value)
+    if (m.type == type)
     {
       curMission = m.list;
       genMatchList();
@@ -206,7 +203,8 @@ missionType.addEventListener('change', function(e)
       return;
     }
   }
-});
+}
+missionType.addEventListener('change', function(e) { selectMission(e.target.value)});
 window.addEventListener("load", function() 
 {
   if (launchData && launchData.items && launchData.items[0]) 
@@ -224,6 +222,7 @@ window.addEventListener("load", function()
     missionType.add(option);
   }
   curMission = MISSIONS[0].list;
+  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
 });
 
 function initAbilityList()
@@ -243,7 +242,7 @@ function initAbilityList()
           if (s) s+=",";
           s+=SPEC[i].name;
         }
-      if (s) s = "<span style='font-size:30%'>" + s + "</span>";
+      if (s) s = "<span style='font-size:12pt'>" + s + "</span>";
       AbilityList.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
         followers:"", possible:"",spec:s});
     }
@@ -281,7 +280,7 @@ function genMacthTable_follower(f, matchedFlag)
       + genMacthTable_follower_abi_img(f.abilities[0], matchedFlag & 1)
       + ((f.abilities.length == 2) ? genMacthTable_follower_abi_img(f.abilities[1], matchedFlag & 2) : "")
       + "</div>"
-      + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:25%'" : "")
+      + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:10px'" : "")
       + ">" + genMacthTable_follower_name(f, lowILV) + "</div>"
       + "</div>";
 }
