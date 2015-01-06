@@ -48,7 +48,7 @@ function tabClickCallback(tab)
   missionListC.createList(match[idx]);
   var h = ((curMission[idx].type != 0) ? (genImg(TRAIT[curMission[idx].type]) + " + ") : "");
   for (var e in curMission[idx].encounters)
-    h += genImg(ABILITY[curMission[idx].encounters[e]]) + " ";
+    h += genImg(ABILITY[curMission[idx].encounters[e]], true);
   missionC.innerHTML = h;
 }
 
@@ -240,10 +240,10 @@ function initAbilityList()
       for (var i in SPEC)
         if ((SPEC[i].counters.indexOf(a1) >= 0) && (SPEC[i].counters.indexOf(a2) >= 0))
         {
-          if (s) s+=",";
+          if (s) s+=", ";
           s+=SPEC[i].name;
         }
-      if (s) s = "<span style='font-size:12pt'>" + s + "</span>";
+      if (s) s = "<span style='font-size:20%'>" + s + "</span>";
       AbilityList.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
         followers:"", possible:"",spec:s});
     }
@@ -252,56 +252,95 @@ function initAbilityList()
 }
 
 // HTML Generation Functions
-function genImg(obj) 
+function genImg(obj, inList) 
 { 
-  var t = (obj.name) ? (" title='" + obj.name + "'" ): ("");
-  return "<img src='img/" + obj.img + ".jpg'" + t + ">"; 
+  var img = document.createElement("img");
+  img.src = "img/" + obj.img + ".jpg";
+  if (obj.name) img.title = obj.name ;
+  if (inList) img.style.margin = "0 2";
+
+  return img.outerHTML; 
+}
+
+function genText(text, color)
+{
+  var t = document.createElement("span");
+  if (color) t.style.color = color;
+  t.innerHTML = text;
+
+  return t.outerHTML;
+}
+
+function genFollowerName(f, specColor)
+{
+  return genText(f.name, f.nameColor);
 }
 
 function genMacthTable_follower_name(follower, lowILV)
 {
-  return "<span style='color:" + follower.nameColor + "'>" + follower.name + "</span>"
-    + "<span style='color:" + ((lowILV) ? "Brown" : "") + "'>"
-    + "(" + follower.iLevel + ")</span>";
+  return genFollowerName(follower)
+    + genText("("+follower.iLevel+")", ((lowILV) ? "Brown" : ""));
 }
 
 function genMacthTable_follower_abi_img(abi, countered)
 {
-  return "<div class='follower abi'>"
-      + ((abi) ? "<ins style=\"background-image:url(img/" + ABILITY[abi].img + ".jpg);\"></ins>" : "")
-      + ((countered) ? "<div class='follower countered'></div>" : "")
-      + "</div>";
+  var abiImg = document.createElement("div");
+  abiImg.className = "follower abi";
+  if (abi)
+  {
+    var tmp = document.createElement("ins");
+    tmp.style.backgroundImage = "url('img/" + ABILITY[abi].img + ".jpg')";
+    abiImg.appendChild(tmp);
+  }
+  if (countered)
+  {
+    var tmp = document.createElement("del");
+    tmp.className = "follower countered";
+    abiImg.appendChild(tmp);
+  }
+
+  return abiImg.outerHTML;
 }
 
-function genMacthTable_follower(f, matchedFlag)
+function genMacthTable_followerDOM(f, matchedFlag)
 {
   var lowILV = f.iLevel < 645;  // strick to 645?
-  return "<div class='follower'>"
-    + "<div class='follower abis" + f.abilities.length + "'>"
-      + genMacthTable_follower_abi_img(f.abilities[0], matchedFlag & 1)
-      + ((f.abilities.length == 2) ? genMacthTable_follower_abi_img(f.abilities[1], matchedFlag & 2) : "")
-      + "</div>"
-      + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:10px'" : "")
-      + ">" + genMacthTable_follower_name(f, lowILV) + "</div>"
-      + "</div>";
+  var follower = document.createElement("div");
+  follower.className = "follower";
+
+  var followerAbis = document.createElement("div");
+  followerAbis.className = "follower abis" + f.abilities.length;
+  for(var i = 0; i < f.abilities.length; ++i)
+    followerAbis.innerHTML += genMacthTable_follower_abi_img(f.abilities[i], matchedFlag & Math.pow(2,i));
+  
+  var followerName = document.createElement("div");
+  followerName.className = "follower name";
+  followerName.innerHTML = genFollowerName(f)
+    + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""));
+
+  follower.appendChild(followerAbis);
+  follower.appendChild(followerName);
+
+  return follower;
 }
 function genMatchTable(matchData)
 {
   var f1 = FOLLOWERDB[matchData.team[0]];
   var f2 = FOLLOWERDB[matchData.team[1]];
   var f3 = FOLLOWERDB[matchData.team[2]];
-  var table = "<div class='followers'>" 
-    + genMacthTable_follower(f1, matchData.matchedFlag[0])
-    + genMacthTable_follower(f2, matchData.matchedFlag[1])
-    + genMacthTable_follower(f3, matchData.matchedFlag[2])
-    + "</div>";
-  return table;
+  var fTable = document.createElement("div");
+  fTable.className = "followers";
+  fTable.appendChild(genMacthTable_followerDOM(f1, matchData.matchedFlag[0]));
+  fTable.appendChild(genMacthTable_followerDOM(f2, matchData.matchedFlag[1]));
+  fTable.appendChild(genMacthTable_followerDOM(f3, matchData.matchedFlag[2]));
+
+  return fTable.outerHTML;
 }
 
 function genTime(hours, green)
 {
 
-  return "<span" + (green ? " style='color:Lime '" : "") + ">" + hours + "小時" + "</span>";
+  return genText(hours + "小時", (green ? "Lime" : ""));
 }
 
 // Follower Sorting Functions
@@ -399,8 +438,8 @@ function genFollowerList(dataArray)
 function appenedFollower(item, key, follower)
 {
   if (item[key])
-    item[key] += " , ";
-  item[key] += "<span style='color:" + follower.nameColor + "'>" + follower.name + "</span>";
+    item[key] += "<br>";
+  item[key] += genFollowerName(follower);
 }
 
 function genMatchList()
@@ -440,11 +479,11 @@ function genMatchList()
       curMatch.matchComp = genMatchTable(curMatch);
       var unMatchHtml = "";
       for (var abi in curMatch.unMatchList)
-        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]]) + " ";
+        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]], true);
       curMatch.unMatch = unMatchHtml;
       var matchTraitHtml = "";
       for (var tar in curMatch.traitMatchList)
-        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]]) + " ";
+        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]], true);
       curMatch.matchTrait = matchTraitHtml;
       curMatch.qTime = genTime(curMatch.questTime, (curMatch.traitMatchList.indexOf(221) >= 0));
     }
@@ -462,9 +501,9 @@ function genMatchList()
       else
         count = FOLLOWERDB[f].countQuest[i] * 100 / matchCount[i];
       if (count > 50)
-        FOLLOWERDB[f].countOutput += ("<span style='color:red'>" + count.toFixed(2) + "%</span> ");
+        FOLLOWERDB[f].countOutput += genText(count.toFixed(2)+"% ", "red");
       else
-        FOLLOWERDB[f].countOutput += (count).toFixed(2) + "% ";
+        FOLLOWERDB[f].countOutput += genText(count.toFixed(2) + "% ");
       average += count;
     }
     FOLLOWERDB[f].average = average/4;

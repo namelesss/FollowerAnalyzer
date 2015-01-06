@@ -93,35 +93,33 @@
         background-color:#ccc;
       }
       .followers {
-        display:flex;
         width:auto;
         margin:0;
       }
       .follower {
-        display:flex;
+        display:inline-flex;
         border:0;
         width:33%;
       }
       .follower.name
       {
-        /*display:inline;*/
         flex:1;
         text-align: center;
         line-height:36px;
         min-height:36px;
+        text-align: right;
       }
       .follower.abis1 {
-        display:flex;
         margin:0 18px;
         width:36px;
       }
       .follower.abis2 {
-        display:flex;
         margin:0;
         width:72px;
       }
       .follower.abi
       {
+        display:inline;
         position: relative;
         z-index: 10;
         background-image:url(img/garrisonability36.png);
@@ -148,7 +146,7 @@
         position:relative;
         background:url(img/ability-countered.png) right bottom  no-repeat;
         background-size: 23px 20px;
-        width: 48px;
+        width: 36px;
         height: 36px;
         z-index:10;
       }
