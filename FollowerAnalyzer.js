@@ -7,7 +7,7 @@ var missionListC = new List(document.getElementById('missionListC'),
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
     {key: "matchTrait", title:"特長", style:nameStyle},
-    {key: "qTime", title:"任務時間"}
+    {key: "qTime", title:"任務時間", style:"width:64px!important"}
     ]);
 
 var followerListTable = [
@@ -42,14 +42,14 @@ var curMission;
 
 function tabClickCallback(tab)
 {
-  //var idx = parseInt(tab.charAt(tab.length - 1)) - 1;
   var idx = parseInt(tab);
 
-  missionListC.createList(match[idx]);
   var h = ((curMission[idx].type != 0) ? (genImg(TRAIT[curMission[idx].type]) + " + ") : "");
   for (var e in curMission[idx].encounters)
     h += genImg(ABILITY[curMission[idx].encounters[e]], true);
   missionC.innerHTML = h;
+  missionListC.createList(match[idx]);
+  adjustMissionList();
 }
 
 function menuClickCallback(menu)
@@ -323,16 +323,13 @@ function genMacthTable_followerDOM(f, matchedFlag)
 
   return follower;
 }
+
 function genMatchTable(matchData)
 {
-  var f1 = FOLLOWERDB[matchData.team[0]];
-  var f2 = FOLLOWERDB[matchData.team[1]];
-  var f3 = FOLLOWERDB[matchData.team[2]];
   var fTable = document.createElement("div");
   fTable.className = "followers";
-  fTable.appendChild(genMacthTable_followerDOM(f1, matchData.matchedFlag[0]));
-  fTable.appendChild(genMacthTable_followerDOM(f2, matchData.matchedFlag[1]));
-  fTable.appendChild(genMacthTable_followerDOM(f3, matchData.matchedFlag[2]));
+  for (var i = 0; i < matchData.team.length; ++i)
+    fTable.appendChild(genMacthTable_followerDOM(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
 
   return fTable.outerHTML;
 }
@@ -341,6 +338,22 @@ function genTime(hours, green)
 {
 
   return genText(hours + "小時", (green ? "Lime" : ""));
+}
+
+function adjustMissionList()
+{
+  /*
+  var trs = missionListC.tbody.childNodes;
+  for (var i = 0; i < trs.length; ++i)
+  {
+    var followers = trs[i].childNodes[1].childNodes[0].childNodes;
+    for (var j = 0; j < followers.length; ++j)
+    {
+      var f = followers[j];
+      for (var nameStyle = f.childNodes[1].style; parseInt(f.style.height) <= 36 || nameStyle.fontSize < 6; --nameStyle.fontSize);
+
+    }
+  }*/
 }
 
 // Follower Sorting Functions
