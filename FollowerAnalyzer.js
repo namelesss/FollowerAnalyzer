@@ -90,12 +90,13 @@ function handleFile(e)
   if (result.length < 2) return;
   initAbilityList();
   genFollowerList(result);
-  FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
 
 
   followerListC.createList(FOLLOWERDB);
   abilityListC.createList(AbilityList);
   // Generate Match tab data
+  sortTitleIdx = -1; // Cancel sort by user
+  FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
   selectMission(missionType.value);
 }
 
