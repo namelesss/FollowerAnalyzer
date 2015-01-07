@@ -11,8 +11,7 @@ var missionListC = new List(document.getElementById('missionListC'),
     ]);
 
 var followerListTable = [
-    {key: "name", title: "名稱", style:nameStyle, color:"nameColor",
-      titleClicked:sortFDB, sortSeq:["quality", "average", "id"]},
+    {key: "nameHTML", title: "名稱", style:nameStyle, titleClicked:sortFDB, sortSeq:["quality", "average", "id"]},
     {key: "raceName", title: "種族", style:nameStyle, titleClicked:sortFDB, sortSeq:["raceName", "average", "id"]},
     {key: "specName", title: "職業", style:nameStyle, titleClicked:sortFDB, sortSeq:["spec", "average", "id"]},
     {key: "inactive", title: "停用", style:nameStyle, titleClicked:sortFDB, sortSeq:["active", "average", "id"]},
@@ -49,7 +48,6 @@ function tabClickCallback(tab)
     h += genImg(ABILITY[curMission[idx].encounters[e]], true);
   missionC.innerHTML = h;
   missionListC.createList(match[idx]);
-  adjustMissionList();
 }
 
 function menuClickCallback(menu)
@@ -262,10 +260,15 @@ function genImg(obj, inList)
   return img.outerHTML; 
 }
 
-function genText(text, color)
+function genText(text, color, nowrap)
 {
   var t = document.createElement("span");
   if (color) t.style.color = color;
+  if (nowrap)
+  {
+    t.style.whiteSpace = "nowrap";
+    t.style.overflow = "hidden";
+  }
   t.innerHTML = text;
 
   return t.outerHTML;
@@ -273,13 +276,7 @@ function genText(text, color)
 
 function genFollowerName(f, specColor)
 {
-  return genText(f.name, f.nameColor);
-}
-
-function genMacthTable_follower_name(follower, lowILV)
-{
-  return genFollowerName(follower)
-    + genText("("+follower.iLevel+")", ((lowILV) ? "Brown" : ""));
+  return genText(f.name, f.nameColor, true);
 }
 
 function genMacthTable_follower_abi_img(abi, countered)
@@ -316,7 +313,7 @@ function genMacthTable_followerDOM(f, matchedFlag)
   var followerName = document.createElement("div");
   followerName.className = "follower name";
   followerName.innerHTML = genFollowerName(f)
-    + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""));
+    + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true);
 
   follower.appendChild(followerAbis);
   follower.appendChild(followerName);
@@ -338,22 +335,6 @@ function genTime(hours, green)
 {
 
   return genText(hours + "小時", (green ? "Lime" : ""));
-}
-
-function adjustMissionList()
-{
-  /*
-  var trs = missionListC.tbody.childNodes;
-  for (var i = 0; i < trs.length; ++i)
-  {
-    var followers = trs[i].childNodes[1].childNodes[0].childNodes;
-    for (var j = 0; j < followers.length; ++j)
-    {
-      var f = followers[j];
-      for (var nameStyle = f.childNodes[1].style; parseInt(f.style.height) <= 36 || nameStyle.fontSize < 6; --nameStyle.fontSize);
-
-    }
-  }*/
 }
 
 // Follower Sorting Functions
@@ -420,6 +401,7 @@ function genFollowerList(dataArray)
     follower.inactive = follower.active ? "" :"☆" ;
 
     follower.nameColor = QUALITY[follower.quality];
+    follower.nameHTML = genFollowerName(follower);
     follower.raceName = (follower.id in RACE) ? RACE[follower.id].a : follower.race;
     follower.specName = SPEC[follower.spec].name;
     follower.ability1 = genImg(ABILITY[abi[0]]);
