@@ -583,20 +583,32 @@ var MISSIONS = [
       { type:48, encounters:[10,8,2,6,9,1], time:8}, //trait 227,228?
       { type:49, encounters:[1,9,6,8,9,10], time:8},
       { type:38, encounters:[2,10,7,4,9,10], time:8},
-      { type:40, encounters:[1,3,3,6,7,4], time:8}] },
+      { type:40, encounters:[1,3,3,6,7,4], time:8}
+    ]},
+  { type:"645紫裝任務", iLevel:645, rewards:"645裝備", list:[
+      { type:40, encounters:[1,8,2,9], time:8}, // weapon
+      { type:4, encounters:[8,10,4,8], time:8}, // sholder
+      { type:4, encounters:[6,10,1,2], time:8}, // chest
+      { type:38, encounters:[8,9,1,7], time:8}, // feet
+      { type:4, encounters:[6,10,2,10], time:8}, // neck
+      { type:43, encounters:[8,9,9,10], time:8}, // trinket
+      { type:39, encounters:[6,3,1,10], time:8}, // waist
+    ]},
   { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
       { type:38, encounters:[6,2,8,7], time:24},
       { type:0, encounters:[2,1,10,3], time:24},
       { type:39, encounters:[4,1,2,7,9], time:24},
       { type:0, encounters:[3,7,8,6], time:24},
-      { type:42, encounters:[8,4,3,6,8], time:24}] },
+      { type:42, encounters:[8,4,3,6,8], time:24}
+    ]},
   { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
       { type:36, encounters:[4,9,8,2,3], time:24},
       { type:45, encounters:[7,2,3,9,2,3], time:24},
       { type:0, encounters:[1,8,4,7,6,2], time:24},
       { type:49, encounters:[8,6,3,9,2,3], time:24},
       { type:9, encounters:[9,6,1,9,3,2], time:24},
-      { type:4, encounters:[7,3,1,2,10,6], time:24}] }
+      { type:4, encounters:[7,3,1,2,10,6], time:24}
+    ]}
 ];
 
 var QUALITY = [
