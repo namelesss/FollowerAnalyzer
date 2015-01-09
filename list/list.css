@@ -1,11 +1,8 @@
 ﻿.list-container {
   border: none;
   width: inherit;
-  height: auto;
-}
-.list-wrap {
-  display: -webkit-flex;
-  -webkit-flex-direction: column;
+        display: -webkit-flex;
+        -webkit-flex-direction: column;
   height: auto;
 }
 .list-table-container{

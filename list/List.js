@@ -1,7 +1,5 @@
 ﻿List = function(container, header) 
 {
-  var tableWrap = document.createElement("DIV");
-  tableWrap.className = "list-wrap";
   var tableH = document.createElement("TABLE");
   var thead = document.createElement("THEAD");
   tableH.appendChild(thead);
@@ -12,9 +10,8 @@
   var tbody = document.createElement("TBODY");
   table.appendChild(tbody);
   tableD.appendChild(table);
-  tableWrap.appendChild(tableH);
-  tableWrap.appendChild(tableD);
-  container.appendChild(tableWrap);
+  container.appendChild(tableH);
+  container.appendChild(tableD);
   
   this.thead = thead;
   this.tbody = tbody;

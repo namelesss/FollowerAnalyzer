@@ -56,27 +56,21 @@ function menuClickCallback(menu)
 {
   if (menu == "followerMenu")
   {
-    followerListC.show();
     missionC.style.display = 'none';
     tabC.hide();
-    missionListC.hide();
-    abilityListC.hide();
+    body.replaceChild(followerListC.container, body.querySelector(".list-container"));
   }
   else if (menu == "missionMenu")
   {
-    followerListC.hide();
     missionC.style.display = 'block'
     tabC.show();
-    missionListC.show();
-    abilityListC.hide();
+    body.replaceChild(missionListC.container, body.querySelector(".list-container"));
   }
   else if (menu == "abilityMenu")
   {
-    followerListC.hide();
     missionC.style.display = 'none'
     tabC.hide();
-    missionListC.hide();
-    abilityListC.show();
+    body.replaceChild(abilityListC.container, body.querySelector(".list-container"));
   }
 }
 
@@ -206,6 +200,7 @@ function selectMission(type)
   }
 }
 missionType.addEventListener('change', function(e) { selectMission(e.target.value)});
+var body = document.getElementById("body-for-padding");
 window.addEventListener("load", function() 
 {
   if (launchData && launchData.items && launchData.items[0]) 
@@ -224,6 +219,8 @@ window.addEventListener("load", function()
   }
   curMission = MISSIONS[0].list;
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
+  body.removeChild(body.querySelector("#missionListC"));
+  body.removeChild(body.querySelector("#abilityListC"));
 });
 
 function initAbilityList()
