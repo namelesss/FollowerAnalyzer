@@ -229,7 +229,9 @@ window.addEventListener("load", function()
   body.removeChild(body.querySelector("#abilityListC"));
 });
 window.addEventListener("resize", function() {
-  followerListC.thead.childNodes[0].childNodes[3].style.width = "200px";
+  var th = followerListC.thead.childNodes[0].childNodes[11];
+  var td = followerListC.tbody.childNodes[0].childNodes[11];
+  th.style.width = td.offsetWidth;
 });
 
 function initAbilityList()
