@@ -11,21 +11,27 @@ var missionListC = new List(document.getElementById('missionListC'),
     ]);
 
 var followerListTable = [
-    {key: "name", title: "名稱", style:nameStyle, color:"nameColor",
+    {key: "name", title: "名稱", style:nameStyle, color:"nameColor",width:"140px",
       titleClicked:sortFDB, sortSeq:["quality", "average", "id"]},
-    {key: "raceName", title: "種族", style:nameStyle, titleClicked:sortFDB, sortSeq:["raceName", "average", "id"]},
-    {key: "specName", title: "職業", style:nameStyle, titleClicked:sortFDB, sortSeq:["spec", "average", "id"]},
-    {key: "inactive", title: "停用", style:nameStyle, titleClicked:sortFDB, sortSeq:["active", "average", "id"]},
-    {key: "level", title: "等級", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
-    {key: "iLevel", title: "裝等", titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
-    {key: "ability1", title: "技能1"},
-    {key: "ability2", title: "技能2"},
-    {key: "trait1", title: "特長1"},
-    {key: "trait2", title: "特長2"},
-    {key: "trait3", title: "特長3"},
-    {key: "countOutput", title: "出場率", style:nameStyle, titleClicked:sortFDB, sortSeq:["average", "id"]}
+    {key: "raceName", title: "種族", style:nameStyle, width:"100px", 
+      titleClicked:sortFDB, sortSeq:["raceName", "average", "id"]},
+    {key: "specName", title: "職業", style:nameStyle, width:"100px", 
+      titleClicked:sortFDB, sortSeq:["spec", "average", "id"]},
+    {key: "inactive", title: "停用", width:"50px", 
+      titleClicked:sortFDB, sortSeq:["active", "average", "id"]},
+    {key: "level", title: "等級",  width:"50px",
+      titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
+    {key: "iLevel", title: "裝等",  width:"50px",
+      titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
+    {key: "ability1", title: "技能1",  width:"50px"},
+    {key: "ability2", title: "技能2",  width:"50px"},
+    {key: "trait1", title: "特長1",  width:"50px"},
+    {key: "trait2", title: "特長2",  width:"50px"},
+    {key: "trait3", title: "特長3",  width:"50px"},
+    {key: "countOutput", title: "出場率", style:nameStyle+";white-space: nowrap;overflow:hidden",
+      titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
-var followerListC = new List(document.getElementById('followerListC'), followerListTable);
+var followerListC = new List(document.getElementById('followerListC'), followerListTable, true);
 var abilityListC = new List(document.getElementById('abilityListC'), 
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
@@ -221,6 +227,9 @@ window.addEventListener("load", function()
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
   body.removeChild(body.querySelector("#missionListC"));
   body.removeChild(body.querySelector("#abilityListC"));
+});
+window.addEventListener("resize", function() {
+  followerListC.thead.childNodes[0].childNodes[3].style.width = "200px";
 });
 
 function initAbilityList()

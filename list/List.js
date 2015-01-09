@@ -1,16 +1,21 @@
-﻿List = function(container, header) 
+﻿List = function(container, header, staticHeader) 
 {
-  var tableH = document.createElement("TABLE");
   var thead = document.createElement("THEAD");
-  tableH.appendChild(thead);
-
-  var tableD = document.createElement("DIV");
-  tableD.className = "list-table-container";
   var table = document.createElement("TABLE");
   var tbody = document.createElement("TBODY");
+  var tableD = document.createElement("DIV");
+  tableD.className = "list-table-container";
   table.appendChild(tbody);
   tableD.appendChild(table);
-  container.appendChild(tableH);
+
+  if (staticHeader)
+  {
+    var tableH = document.createElement("TABLE");
+    tableH.appendChild(thead);
+    container.appendChild(tableH);
+  }
+  else
+    table.appendChild(thead);
   container.appendChild(tableD);
   
   this.thead = thead;
@@ -18,6 +23,7 @@
 
   this.container = container;
   this.header = header;
+  this.staticHeader = staticHeader;
   this.currentList;
 }
 
@@ -41,6 +47,8 @@ List.prototype.updateList = function ()
         td.style.color = data[title.color] || title.color;
       if (this.titleKey)
         td.setAttribute("title", data[this.titleKey]); 
+      if (this.staticHeader && title.width)
+        td.style.width = title.width;
     }
   }
 }
@@ -98,6 +106,8 @@ List.prototype.createList = function (dataList, titleKey)
         this.titleClicked(this)
       }
     }
+    if (this.staticHeader && header[i].width)
+      th.style.width = header[i].width;
     tr.appendChild(th);
   }
   if (this.thead.firstChild)
