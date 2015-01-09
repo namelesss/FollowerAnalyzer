@@ -1,11 +1,20 @@
 ﻿List = function(container, header) 
 {
-  var table = document.createElement("TABLE");
+  var tableWrap = document.createElement("DIV");
+  tableWrap.className = "list-wrap";
+  var tableH = document.createElement("TABLE");
   var thead = document.createElement("THEAD");
+  tableH.appendChild(thead);
+
+  var tableD = document.createElement("DIV");
+  tableD.className = "list-table-container";
+  var table = document.createElement("TABLE");
   var tbody = document.createElement("TBODY");
-  table.appendChild(thead);
   table.appendChild(tbody);
-  container.appendChild(table);
+  tableD.appendChild(table);
+  tableWrap.appendChild(tableH);
+  tableWrap.appendChild(tableD);
+  container.appendChild(tableWrap);
   
   this.thead = thead;
   this.tbody = tbody;
