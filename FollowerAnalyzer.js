@@ -1,13 +1,13 @@
-var menuC = new Tab(document.getElementById('menuC'), menuClickCallback);
-var tabC = new Tab(document.getElementById('tabC'), tabClickCallback);
+var menuC = new Tab($('#menuC').get(0), menuClickCallback);
+var tabC = new Tab($('#tabC').get(0), tabClickCallback);
 
 var nameStyle = "text-align: left;padding-left: 10px";
-var missionListC = new List(document.getElementById('missionListC'),
+var missionListC = new List($('#missionListC').get(0),
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
     {key: "matchTrait", title:"特長", style:nameStyle},
-    {key: "qTime", title:"任務時間"}
+    {key: "qTime", title:"任務時間", style:"width:64px!important"}
     ]);
 
 var followerListTable = [
@@ -31,15 +31,13 @@ var followerListTable = [
     {key: "countOutput", title: "出場率", style:nameStyle+";white-space: nowrap;overflow:hidden",
       titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
-var followerListC = new List(document.getElementById('followerListC'), followerListTable, true);
-var abilityListC = new List(document.getElementById('abilityListC'), 
+var followerListC = new List($('#followerListC').get(0), followerListTable, true);
+var abilityListC = new List($('#abilityListC').get(0),
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
     {key:"possible",title:"可期望名單", style:nameStyle},
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
-
-var missionC = document.getElementById('missionC');
 
 var FOLLOWERDB = [];
 var match = [];
@@ -48,43 +46,45 @@ var curMission;
 
 function tabClickCallback(tab)
 {
-  //var idx = parseInt(tab.charAt(tab.length - 1)) - 1;
   var idx = parseInt(tab);
 
-  missionListC.createList(match[idx]);
   var h = ((curMission[idx].type != 0) ? (genImg(TRAIT[curMission[idx].type]) + " + ") : "");
   for (var e in curMission[idx].encounters)
-    h += genImg(ABILITY[curMission[idx].encounters[e]]) + " ";
-  missionC.innerHTML = h;
+    h += genImg(ABILITY[curMission[idx].encounters[e]], true);
+   $("#missionC").html(h);
+  missionListC.createList(match[idx]);
 }
 
 function menuClickCallback(menu)
 {
   if (menu == "followerMenu")
   {
-    missionC.style.display = 'none';
-    tabC.hide();
-    body.replaceChild(followerListC.container, body.querySelector(".list-container"));
+    $("#missionC").hide();
+    $("#tabC").hide();
+    $(".list-container").hide();
+    $("#followerListC").show();
   }
   else if (menu == "missionMenu")
   {
-    missionC.style.display = 'block'
-    tabC.show();
-    body.replaceChild(missionListC.container, body.querySelector(".list-container"));
+    $("#missionC").show();
+    $("#tabC").show();
+    $(".list-container").hide();
+    $("#missionListC").show();
   }
   else if (menu == "abilityMenu")
   {
-    missionC.style.display = 'none'
-    tabC.hide();
-    body.replaceChild(abilityListC.container, body.querySelector(".list-container"));
+    $("#missionC").hide();
+    $("tabC").hide();
+    $(".list-container").hide();
+    $("#abilityListC").show();
   }
 }
 
-function handleFile(e)
+function fetchData(dataString)
 {
   while(FOLLOWERDB.length > 0)
      FOLLOWERDB.pop();
-  var result = ("" + e.target.result).split("\n");
+  var result = ("" + dataString).split("\n");
 
   // Fetch Data
   if (result.length < 2) return;
@@ -97,7 +97,12 @@ function handleFile(e)
   // Generate Match tab data
   sortTitleIdx = -1; // Cancel sort by user
   FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
-  selectMission(missionType.value);
+  selectMission($("#missionType").val());
+}
+
+function handleFile(e)
+{
+  fetchData(e.target.result);
 }
 
 function loadFileEntry(_chosenEntry) {
@@ -113,7 +118,7 @@ function loadFileEntry(_chosenEntry) {
     reader.readAsText(file);
     // Update pathname
     chrome.fileSystem.getDisplayPath(chosenEntry, function(path) {
-      document.querySelector('#file_path').value = "檔案: " + path;
+      $("#file_path").val("檔案: " + path);
     });
   });
 }
@@ -142,12 +147,12 @@ function loadFileFromStorageEntry()
   });
 }
 
-document.querySelector('#refresh').addEventListener('click', function(e)
+$("#refresh").click(function(e)
 {
   loadFileFromStorageEntry();
 });
 
-document.querySelector('#choose_file').addEventListener('click', function(e) 
+$("#choose_file").click(function(e) 
 {
   chrome.fileSystem.chooseEntry({type: 'openFile', 
                                  accepts: [{extensions: ["csv"]}],
@@ -164,25 +169,21 @@ document.querySelector('#choose_file').addEventListener('click', function(e)
   });
 });
 
-var cover = document.getElementById('cover');
-var input = document.getElementById('input');
-document.querySelector('#open').addEventListener('click', function(e)
+$('#open').click(function()
 {
-  input.value = "";
-  cover.style.display = "block";
-  input.focus();
+  $("#input").val("");
+  $("#cover").css("display",  "block");
+  $("#input").focus();
 });
-document.querySelector('#close').addEventListener('click', function(e)
+$("#close").click(function() { $("#cover").css("display",  "none");});
+
+$("#from_string").click(function()
 {
-  cover.style.display = "none";
+  $("#cover").css("display", "none");
+  fetchData($("#input").val());
+  $('#file_path').val("字串輸入");
 });
-document.querySelector('#from_string').addEventListener('click', function(e)
-{
-  cover.style.display = "none";
-  handleFile({target:{result:input.value}});
-  document.querySelector('#file_path').value = "字串輸入";
-});
-var missionType = document.getElementById('missionType');
+
 function selectMission(type)
 {
   for (var i = 0; i < MISSIONS.length; ++i)
@@ -205,10 +206,10 @@ function selectMission(type)
     }
   }
 }
-missionType.addEventListener('change', function(e) { selectMission(e.target.value)});
 var body = document.getElementById("body-for-padding");
-window.addEventListener("load", function() 
-{
+
+$("#missionType").change(function() { selectMission($("#missionType").val())});
+$(document).ready(function() {
   if (launchData && launchData.items && launchData.items[0]) 
   {
     loadFileEntry(launchData.items[0].entry);
@@ -218,20 +219,16 @@ window.addEventListener("load", function()
     loadFileFromStorageEntry();
   }
   for (var i in MISSIONS)
-  {
-    var option = document.createElement("option");
-    option.text = MISSIONS[i].type;
-    missionType.add(option);
-  }
+    $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0].list;
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
-  body.removeChild(body.querySelector("#missionListC"));
-  body.removeChild(body.querySelector("#abilityListC"));
+//  body.removeChild(body.querySelector("#missionListC"));
+//  body.removeChild(body.querySelector("#abilityListC"));
 });
 window.addEventListener("resize", function() {
   var th = followerListC.thead.childNodes[0].childNodes[11];
   var td = followerListC.tbody.childNodes[0].childNodes[11];
-  th.style.width = td.offsetWidth;
+//  th.style.width = td.offsetWidth;
 });
 
 function initAbilityList()
@@ -248,10 +245,10 @@ function initAbilityList()
       for (var i in SPEC)
         if ((SPEC[i].counters.indexOf(a1) >= 0) && (SPEC[i].counters.indexOf(a2) >= 0))
         {
-          if (s) s+=",";
+          if (s) s+=", ";
           s+=SPEC[i].name;
         }
-      if (s) s = "<span style='font-size:12pt'>" + s + "</span>";
+      if (s) s = "<span style='font-size:20%'>" + s + "</span>";
       AbilityList.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
         followers:"", possible:"",spec:s});
     }
@@ -260,56 +257,77 @@ function initAbilityList()
 }
 
 // HTML Generation Functions
-function genImg(obj) 
+function genImg(obj, inList) 
 { 
-  var t = (obj.name) ? (" title='" + obj.name + "'" ): ("");
-  return "<img src='img/" + obj.img + ".jpg'" + t + ">"; 
+  var img = $("<img>");
+  img.attr("src", "img/" + obj.img + ".jpg");
+  if (obj.name) img.attr("title", obj.name);
+  if (inList) img.css("margin", "0 2");
+
+  return img[0].outerHTML; 
 }
 
-function genMacthTable_follower_name(follower, lowILV)
+function genText(text, color, nowrap)
 {
-  return "<span style='color:" + follower.nameColor + "'>" + follower.name + "</span>"
-    + "<span style='color:" + ((lowILV) ? "Brown" : "") + "'>"
-    + "(" + follower.iLevel + ")</span>";
+  var t = $("<span>"+text+"</span>");
+  if (color) t.css("color", color);
+  if (nowrap)
+  {
+    t.css("whiteSpace", "nowrap");
+    t.css("overflow", "hidden");
+  }
+
+  return t[0].outerHTML;
+}
+
+function genFollowerName(f, specColor)
+{
+  return genText(f.name, f.nameColor, true);
 }
 
 function genMacthTable_follower_abi_img(abi, countered)
 {
-  return "<div class='follower abi'>"
-      + ((abi) ? "<ins style=\"background-image:url(img/" + ABILITY[abi].img + ".jpg);\"></ins>" : "")
-      + ((countered) ? "<div class='follower countered'></div>" : "")
-      + "</div>";
+  var abiImg = $("<div></div").addClass("follower abi");
+  if (abi)
+    abiImg.append($("<ins></ins>").css("background-image", "url('img/" + ABILITY[abi].img + ".jpg')"));
+
+  if (countered)
+    abiImg.append($("<del></del>").addClass("follower countered"));
+
+  return abiImg[0].outerHTML;
 }
 
-function genMacthTable_follower(f, matchedFlag)
+function genMacthTable_followerDOM(f, matchedFlag)
 {
   var lowILV = f.iLevel < 645;  // strick to 645?
-  return "<div class='follower'>"
-    + "<div class='follower abis" + f.abilities.length + "'>"
-      + genMacthTable_follower_abi_img(f.abilities[0], matchedFlag & 1)
-      + ((f.abilities.length == 2) ? genMacthTable_follower_abi_img(f.abilities[1], matchedFlag & 2) : "")
-      + "</div>"
-      + "<div class='follower name'" + ((f.name.length > 7) ? " style='font-size:10px'" : "")
-      + ">" + genMacthTable_follower_name(f, lowILV) + "</div>"
-      + "</div>";
+  var follower = $("<div></div").addClass("follower");
+
+  var followerAbis = $("<div></div").addClass("follower abis" + f.abilities.length);
+  for(var i = 0; i < f.abilities.length; ++i)
+    followerAbis.append(genMacthTable_follower_abi_img(f.abilities[i], matchedFlag & Math.pow(2,i)));
+  
+  var followerName = $("<div></div").addClass("follower name");
+  followerName.html(genFollowerName(f) + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true));
+
+  follower.append(followerAbis);
+  follower.append(followerName);
+
+  return follower;
 }
+
 function genMatchTable(matchData)
 {
-  var f1 = FOLLOWERDB[matchData.team[0]];
-  var f2 = FOLLOWERDB[matchData.team[1]];
-  var f3 = FOLLOWERDB[matchData.team[2]];
-  var table = "<div class='followers'>" 
-    + genMacthTable_follower(f1, matchData.matchedFlag[0])
-    + genMacthTable_follower(f2, matchData.matchedFlag[1])
-    + genMacthTable_follower(f3, matchData.matchedFlag[2])
-    + "</div>";
-  return table;
+  var fTable = $("<div></div").addClass("followers");
+  for (var i = 0; i < matchData.team.length; ++i)
+    fTable.append(genMacthTable_followerDOM(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
+
+  return fTable[0].outerHTML;
 }
 
 function genTime(hours, green)
 {
 
-  return "<span" + (green ? " style='color:Lime '" : "") + ">" + hours + "小時" + "</span>";
+  return genText(hours + "小時", (green ? "Lime" : ""));
 }
 
 // Follower Sorting Functions
@@ -376,6 +394,7 @@ function genFollowerList(dataArray)
     follower.inactive = follower.active ? "" :"☆" ;
 
     follower.nameColor = QUALITY[follower.quality];
+    follower.nameHTML = genFollowerName(follower);
     follower.raceName = (follower.id in RACE) ? RACE[follower.id].a : follower.race;
     follower.specName = SPEC[follower.spec].name;
     follower.ability1 = genImg(ABILITY[abi[0]]);
@@ -407,8 +426,8 @@ function genFollowerList(dataArray)
 function appenedFollower(item, key, follower)
 {
   if (item[key])
-    item[key] += " , ";
-  item[key] += "<span style='color:" + follower.nameColor + "'>" + follower.name + "</span>";
+    item[key] += "<br>";
+  item[key] += genFollowerName(follower);
 }
 
 function genMatchList()
@@ -448,11 +467,11 @@ function genMatchList()
       curMatch.matchComp = genMatchTable(curMatch);
       var unMatchHtml = "";
       for (var abi in curMatch.unMatchList)
-        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]]) + " ";
+        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]], true);
       curMatch.unMatch = unMatchHtml;
       var matchTraitHtml = "";
       for (var tar in curMatch.traitMatchList)
-        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]]) + " ";
+        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]], true);
       curMatch.matchTrait = matchTraitHtml;
       curMatch.qTime = genTime(curMatch.questTime, (curMatch.traitMatchList.indexOf(221) >= 0));
     }
@@ -470,9 +489,9 @@ function genMatchList()
       else
         count = FOLLOWERDB[f].countQuest[i] * 100 / matchCount[i];
       if (count > 50)
-        FOLLOWERDB[f].countOutput += ("<span style='color:red'>" + count.toFixed(2) + "%</span> ");
+        FOLLOWERDB[f].countOutput += genText(count.toFixed(2)+"% ", "red");
       else
-        FOLLOWERDB[f].countOutput += (count).toFixed(2) + "% ";
+        FOLLOWERDB[f].countOutput += genText(count.toFixed(2) + "% ");
       average += count;
     }
     FOLLOWERDB[f].average = average/4;
@@ -591,20 +610,32 @@ var MISSIONS = [
       { type:48, encounters:[10,8,2,6,9,1], time:8}, //trait 227,228?
       { type:49, encounters:[1,9,6,8,9,10], time:8},
       { type:38, encounters:[2,10,7,4,9,10], time:8},
-      { type:40, encounters:[1,3,3,6,7,4], time:8}] },
+      { type:40, encounters:[1,3,3,6,7,4], time:8}
+    ]},
+  { type:"645紫裝任務", iLevel:645, rewards:"645裝備", list:[
+      { type:40, encounters:[1,8,2,9], time:8}, // weapon
+      { type:4, encounters:[8,10,4,8], time:8}, // sholder
+      { type:4, encounters:[6,10,1,2], time:8}, // chest
+      { type:38, encounters:[8,9,1,7], time:8}, // feet
+      { type:4, encounters:[6,10,2,10], time:8}, // neck
+      { type:43, encounters:[8,9,9,10], time:8}, // trinket
+      { type:39, encounters:[6,3,1,10], time:8}, // waist
+    ]},
   { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
       { type:38, encounters:[6,2,8,7], time:24},
       { type:0, encounters:[2,1,10,3], time:24},
       { type:39, encounters:[4,1,2,7,9], time:24},
       { type:0, encounters:[3,7,8,6], time:24},
-      { type:42, encounters:[8,4,3,6,8], time:24}] },
+      { type:42, encounters:[8,4,3,6,8], time:24}
+    ]},
   { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
       { type:36, encounters:[4,9,8,2,3], time:24},
       { type:45, encounters:[7,2,3,9,2,3], time:24},
       { type:0, encounters:[1,8,4,7,6,2], time:24},
       { type:49, encounters:[8,6,3,9,2,3], time:24},
       { type:9, encounters:[9,6,1,9,3,2], time:24},
-      { type:4, encounters:[7,3,1,2,10,6], time:24}] }
+      { type:4, encounters:[7,3,1,2,10,6], time:24}
+    ]}
 ];
 
 var QUALITY = [
