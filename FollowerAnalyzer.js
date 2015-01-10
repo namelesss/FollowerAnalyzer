@@ -1,8 +1,8 @@
-var menuC = new Tab(document.getElementById('menuC'), menuClickCallback);
-var tabC = new Tab(document.getElementById('tabC'), tabClickCallback);
+var menuC = new Tab($('#menuC').get(0), menuClickCallback);
+var tabC = new Tab($('#tabC').get(0), tabClickCallback);
 
 var nameStyle = "text-align: left;padding-left: 10px";
-var missionListC = new List(document.getElementById('missionListC'),
+var missionListC = new List($('#missionListC').get(0),
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
@@ -24,15 +24,13 @@ var followerListTable = [
     {key: "trait3", title: "特長3"},
     {key: "countOutput", title: "出場率", style:nameStyle, titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
-var followerListC = new List(document.getElementById('followerListC'), followerListTable);
-var abilityListC = new List(document.getElementById('abilityListC'), 
+var followerListC = new List($('#followerListC').get(0), followerListTable);
+var abilityListC = new List($('#abilityListC').get(0), 
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
     {key:"possible",title:"可期望名單", style:nameStyle},
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
-
-var missionC = document.getElementById('missionC');
 
 var FOLLOWERDB = [];
 var match = [];
@@ -46,7 +44,7 @@ function tabClickCallback(tab)
   var h = ((curMission[idx].type != 0) ? (genImg(TRAIT[curMission[idx].type]) + " + ") : "");
   for (var e in curMission[idx].encounters)
     h += genImg(ABILITY[curMission[idx].encounters[e]], true);
-  missionC.innerHTML = h;
+   $("#missionC").html(h);
   missionListC.createList(match[idx]);
 }
 
@@ -54,35 +52,32 @@ function menuClickCallback(menu)
 {
   if (menu == "followerMenu")
   {
-    followerListC.show();
-    missionC.style.display = 'none';
-    tabC.hide();
-    missionListC.hide();
-    abilityListC.hide();
+    $("#missionC").hide();
+    $("#tabC").hide();
+    $(".list-container").hide();
+    $("#followerListC").show();
   }
   else if (menu == "missionMenu")
   {
-    followerListC.hide();
-    missionC.style.display = 'block'
-    tabC.show();
-    missionListC.show();
-    abilityListC.hide();
+    $("#missionC").show();
+    $("#tabC").show();
+    $(".list-container").hide();
+    $("#missionListC").show();
   }
   else if (menu == "abilityMenu")
   {
-    followerListC.hide();
-    missionC.style.display = 'none'
-    tabC.hide();
-    missionListC.hide();
-    abilityListC.show();
+    $("#missionC").hide();
+    $("tabC").hide();
+    $(".list-container").hide();
+    $("#abilityListC").show();
   }
 }
 
-function handleFile(e)
+function fetchData(dataString)
 {
   while(FOLLOWERDB.length > 0)
      FOLLOWERDB.pop();
-  var result = ("" + e.target.result).split("\n");
+  var result = ("" + dataString).split("\n");
 
   // Fetch Data
   if (result.length < 2) return;
@@ -95,7 +90,12 @@ function handleFile(e)
   // Generate Match tab data
   sortTitleIdx = -1; // Cancel sort by user
   FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
-  selectMission(missionType.value);
+  selectMission($("#missionType").val());
+}
+
+function handleFile(e)
+{
+  fetchData(e.target.result);
 }
 
 function loadFileEntry(_chosenEntry) {
@@ -111,7 +111,7 @@ function loadFileEntry(_chosenEntry) {
     reader.readAsText(file);
     // Update pathname
     chrome.fileSystem.getDisplayPath(chosenEntry, function(path) {
-      document.querySelector('#file_path').value = "檔案: " + path;
+      $("#file_path").val("檔案: " + path);
     });
   });
 }
@@ -140,12 +140,12 @@ function loadFileFromStorageEntry()
   });
 }
 
-document.querySelector('#refresh').addEventListener('click', function(e)
+$("#refresh").click(function(e)
 {
   loadFileFromStorageEntry();
 });
 
-document.querySelector('#choose_file').addEventListener('click', function(e) 
+$("#choose_file").click(function(e) 
 {
   chrome.fileSystem.chooseEntry({type: 'openFile', 
                                  accepts: [{extensions: ["csv"]}],
@@ -162,25 +162,21 @@ document.querySelector('#choose_file').addEventListener('click', function(e)
   });
 });
 
-var cover = document.getElementById('cover');
-var input = document.getElementById('input');
-document.querySelector('#open').addEventListener('click', function(e)
+$('#open').click(function()
 {
-  input.value = "";
-  cover.style.display = "block";
-  input.focus();
+  $("#input").val("");
+  $("#cover").css("display",  "block");
+  $("#input").focus();
 });
-document.querySelector('#close').addEventListener('click', function(e)
+$("#close").click(function() { $("#cover").css("display",  "none");});
+
+$("#from_string").click(function()
 {
-  cover.style.display = "none";
+  $("#cover").css("display", "none");
+  fetchData($("#input").val());
+  $('#file_path').val("字串輸入");
 });
-document.querySelector('#from_string').addEventListener('click', function(e)
-{
-  cover.style.display = "none";
-  handleFile({target:{result:input.value}});
-  document.querySelector('#file_path').value = "字串輸入";
-});
-var missionType = document.getElementById('missionType');
+
 function selectMission(type)
 {
   for (var i = 0; i < MISSIONS.length; ++i)
@@ -203,9 +199,8 @@ function selectMission(type)
     }
   }
 }
-missionType.addEventListener('change', function(e) { selectMission(e.target.value)});
-window.addEventListener("load", function() 
-{
+$("#missionType").change(function() { selectMission($("#missionType").val())});
+$(document).ready(function() {
   if (launchData && launchData.items && launchData.items[0]) 
   {
     loadFileEntry(launchData.items[0].entry);
@@ -215,11 +210,7 @@ window.addEventListener("load", function()
     loadFileFromStorageEntry();
   }
   for (var i in MISSIONS)
-  {
-    var option = document.createElement("option");
-    option.text = MISSIONS[i].type;
-    missionType.add(option);
-  }
+    $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0].list;
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
 });
@@ -252,26 +243,25 @@ function initAbilityList()
 // HTML Generation Functions
 function genImg(obj, inList) 
 { 
-  var img = document.createElement("img");
-  img.src = "img/" + obj.img + ".jpg";
-  if (obj.name) img.title = obj.name ;
-  if (inList) img.style.margin = "0 2";
+  var img = $("<img>");
+  img.attr("src", "img/" + obj.img + ".jpg");
+  if (obj.name) img.attr("title", obj.name);
+  if (inList) img.css("margin", "0 2");
 
-  return img.outerHTML; 
+  return img[0].outerHTML; 
 }
 
 function genText(text, color, nowrap)
 {
-  var t = document.createElement("span");
-  if (color) t.style.color = color;
+  var t = $("<span>"+text+"</span>");
+  if (color) t.css("color", color);
   if (nowrap)
   {
-    t.style.whiteSpace = "nowrap";
-    t.style.overflow = "hidden";
+    t.css("whiteSpace", "nowrap");
+    t.css("overflow", "hidden");
   }
-  t.innerHTML = text;
 
-  return t.outerHTML;
+  return t[0].outerHTML;
 }
 
 function genFollowerName(f, specColor)
@@ -281,54 +271,41 @@ function genFollowerName(f, specColor)
 
 function genMacthTable_follower_abi_img(abi, countered)
 {
-  var abiImg = document.createElement("div");
-  abiImg.className = "follower abi";
+  var abiImg = $("<div></div").addClass("follower abi");
   if (abi)
-  {
-    var tmp = document.createElement("ins");
-    tmp.style.backgroundImage = "url('img/" + ABILITY[abi].img + ".jpg')";
-    abiImg.appendChild(tmp);
-  }
-  if (countered)
-  {
-    var tmp = document.createElement("del");
-    tmp.className = "follower countered";
-    abiImg.appendChild(tmp);
-  }
+    abiImg.append($("<ins></ins>").css("background-image", "url('img/" + ABILITY[abi].img + ".jpg')"));
 
-  return abiImg.outerHTML;
+  if (countered)
+    abiImg.append($("<del></del>").addClass("follower countered"));
+
+  return abiImg[0].outerHTML;
 }
 
 function genMacthTable_followerDOM(f, matchedFlag)
 {
   var lowILV = f.iLevel < 645;  // strick to 645?
-  var follower = document.createElement("div");
-  follower.className = "follower";
+  var follower = $("<div></div").addClass("follower");
 
-  var followerAbis = document.createElement("div");
-  followerAbis.className = "follower abis" + f.abilities.length;
+  var followerAbis = $("<div></div").addClass("follower abis" + f.abilities.length);
   for(var i = 0; i < f.abilities.length; ++i)
-    followerAbis.innerHTML += genMacthTable_follower_abi_img(f.abilities[i], matchedFlag & Math.pow(2,i));
+    followerAbis.append(genMacthTable_follower_abi_img(f.abilities[i], matchedFlag & Math.pow(2,i)));
   
-  var followerName = document.createElement("div");
-  followerName.className = "follower name";
-  followerName.innerHTML = genFollowerName(f)
-    + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true);
+  var followerName = $("<div></div").addClass("follower name");
+  followerName.html(genFollowerName(f) + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true));
 
-  follower.appendChild(followerAbis);
-  follower.appendChild(followerName);
+  follower.append(followerAbis);
+  follower.append(followerName);
 
   return follower;
 }
 
 function genMatchTable(matchData)
 {
-  var fTable = document.createElement("div");
-  fTable.className = "followers";
+  var fTable = $("<div></div").addClass("followers");
   for (var i = 0; i < matchData.team.length; ++i)
-    fTable.appendChild(genMacthTable_followerDOM(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
+    fTable.append(genMacthTable_followerDOM(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
 
-  return fTable.outerHTML;
+  return fTable[0].outerHTML;
 }
 
 function genTime(hours, green)
