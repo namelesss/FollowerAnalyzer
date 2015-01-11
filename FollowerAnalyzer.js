@@ -40,7 +40,7 @@ var abilityListC = new List('#abilityListC',
     ]);
 
 var FOLLOWERDB = [];
-var match = [];
+var MATCHDB = [];
 var AbilityList = [];
 var curMission;
 
@@ -52,7 +52,7 @@ function tabClickCallback(tab)
   for (var e in curMission[idx].encounters)
     h += genImg(ABILITY[curMission[idx].encounters[e]], true);
    $("#missionC").html(h);
-  missionListC.createList(match[idx]);
+  missionListC.createList(MATCHDB[idx]);
 }
 
 function menuClickCallback(menu)
@@ -82,12 +82,12 @@ function menuClickCallback(menu)
 
 function fetchData(dataString)
 {
-  while(FOLLOWERDB.length > 0)
-     FOLLOWERDB.pop();
   var result = ("" + dataString).split("\n");
 
   // Fetch Data
   if (result.length < 2) return;
+  FOLLOWERDB = [];
+  MATCHDB = [];
   initAbilityList();
   genFollowerList(result);
 
@@ -426,28 +426,28 @@ function genMatchList()
   var matchCount = [];
   for (var i = 0; i < curMission.length; ++i)
   {
-    match[i] = [];
+    MATCHDB[i] = [];
     matchCount[i] = 0;
     for (var f = 0; f < FOLLOWERDB.length; ++f)
       FOLLOWERDB[f].countQuest[i] = 0;
 
-    MatchMission(FOLLOWERDB, curMission[i], match[i], 1.0);
-    if (match[i].length == 0)
+    MatchMission(FOLLOWERDB, curMission[i], MATCHDB[i], 1.0);
+    if (MATCHDB[i].length == 0)
     {
       var bound = 0.95, MATCH_MAX = 10;
       do
       {
-        match[i] = [];
-        MatchMission(FOLLOWERDB, curMission[i], match[i], bound);
+        MATCHDB[i] = [];
+        MatchMission(FOLLOWERDB, curMission[i], MATCHDB[i], bound);
         bound -= 0.05;
-      }while (match[i].length < MATCH_MAX);
+      }while (MATCHDB[i].length < MATCH_MAX);
     }
     // sort
-    match[i].sort(function(a, b) { return b.rate - a.rate; });
+    MATCHDB[i].sort(function(a, b) { return b.rate - a.rate; });
 
-    for (var j = 0; j < match[i].length; ++j)
+    for (var j = 0; j < MATCHDB[i].length; ++j)
     {
-      var curMatch = match[i][j];
+      var curMatch = MATCHDB[i][j];
 
       matchCount[i]++;
       FOLLOWERDB[curMatch.team[0]].countQuest[i]++;
