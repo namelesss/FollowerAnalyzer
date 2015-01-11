@@ -149,7 +149,7 @@ document.querySelector('#choose_file').addEventListener('click', function(e)
 {
   chrome.fileSystem.chooseEntry({type: 'openFile', 
                                  accepts: [{extensions: ["csv"]}],
-                                 acceptsAllTypes: false }, function(theEntry) 
+                                 acceptsAllTypes: true }, function(theEntry) 
   {
     if (chrome.runtime.lastError || !theEntry) 
     {
