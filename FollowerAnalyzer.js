@@ -603,6 +603,12 @@ var MISSIONS = [
       { type:38, encounters:[2,10,7,4,9,10], time:8},
       { type:40, encounters:[1,3,3,6,7,4], time:8}
     ]},
+  { type:"黑石團隊任務", iLevel:645, rewards:"黑石寶箱", list:[
+      { type:7, encounters:[2,6,1,3,3,10], time:8},
+      { type:4, encounters:[1,2,6,3,9,10], time:8},
+      { type:45, encounters:[4,7,6,7,4,8], time:8},
+      { type:41, encounters:[6,3,10,1,9,7], time:8}
+    ]},    
   { type:"645紫裝任務", iLevel:645, rewards:"645裝備", list:[
       { type:40, encounters:[1,8,2,9], time:8}, // weapon
       { type:4, encounters:[8,10,4,8], time:8}, // sholder
