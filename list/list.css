@@ -1,6 +1,6 @@
 ﻿.list-container {
   display: -webkit-flex;
-  -webkit-flex-direction: column
+  -webkit-flex-direction: column;
   position: relative;
   border: none;
   width: inherit;
