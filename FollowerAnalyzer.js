@@ -31,7 +31,7 @@ var followerListTable = [
     {key: "countOutput", title: "出場率", style:nameStyle+";white-space: nowrap;overflow:hidden",
       titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
-var followerListC = new List($('#followerListC').get(0), followerListTable, true);
+var followerListC = new List($('#followerListC').get(0), followerListTable);
 var abilityListC = new List($('#abilityListC').get(0),
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
@@ -74,7 +74,7 @@ function menuClickCallback(menu)
   else if (menu == "abilityMenu")
   {
     $("#missionC").hide();
-    $("tabC").hide();
+    $("#tabC").hide();
     $(".list-container").hide();
     $("#abilityListC").show();
   }

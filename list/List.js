@@ -1,21 +1,17 @@
-﻿List = function(container, header, staticHeader) 
+﻿List = function(container, header) 
 {
   var thead = document.createElement("THEAD");
   var table = document.createElement("TABLE");
   var tbody = document.createElement("TBODY");
+  table.appendChild(thead);
+  table.appendChild(tbody);
+
+  var tableH = document.createElement("DIV");
+  tableH.className = "list-table-header";
   var tableD = document.createElement("DIV");
   tableD.className = "list-table-container";
-  table.appendChild(tbody);
   tableD.appendChild(table);
-
-  if (staticHeader)
-  {
-    var tableH = document.createElement("TABLE");
-    tableH.appendChild(thead);
-    container.appendChild(tableH);
-  }
-  else
-    table.appendChild(thead);
+  container.appendChild(tableH);
   container.appendChild(tableD);
   
   this.thead = thead;
@@ -23,7 +19,6 @@
 
   this.container = container;
   this.header = header;
-  this.staticHeader = staticHeader;
   this.currentList;
 }
 
@@ -47,7 +42,7 @@ List.prototype.updateList = function ()
         td.style.color = data[title.color] || title.color;
       if (this.titleKey)
         td.setAttribute("title", data[this.titleKey]); 
-      if (this.staticHeader && title.width)
+      if (title.width)
         td.style.width = title.width;
     }
   }
@@ -60,7 +55,7 @@ List.prototype.clearList = function ()
 
 List.prototype.createList = function (dataList, titleKey)
 {
-  this.currentList = dataList
+  this.currentList = dataList;
   this.titleKey = (titleKey) ? titleKey : "";
 
   var nodes = this.tbody.childNodes;
@@ -81,7 +76,7 @@ List.prototype.createList = function (dataList, titleKey)
       var td = document.createElement("TD");
       tr.appendChild(td);
     }
-    tr.appendChild(td);
+    //tr.appendChild(td);
 
     this.tbody.appendChild(tr);
   }
@@ -91,7 +86,9 @@ List.prototype.createList = function (dataList, titleKey)
   var header = this.header;
   for (var i = 0; i < header.length; ++i)
   {
-    var th = document.createElement("TH");
+    var realth = document.createElement("TH");
+    var th = document.createElement("div");
+    th.className = "th-inner";
     th.innerHTML = header[i].title;
     if (header[i].style) 
       th.setAttribute("style", header[i].style);
@@ -106,9 +103,10 @@ List.prototype.createList = function (dataList, titleKey)
         this.titleClicked(this)
       }
     }
-    if (this.staticHeader && header[i].width)
+    if (header[i].width)
       th.style.width = header[i].width;
-    tr.appendChild(th);
+    realth.appendChild(th);
+    tr.appendChild(realth);
   }
   if (this.thead.firstChild)
     this.thead.removeChild(this.thead.firstChild);

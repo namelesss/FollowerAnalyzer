@@ -24,6 +24,9 @@
         width: 100%;
         display: flex;
       }
+      .menu-wrapper {
+        border-bottom: 2px solid #333;
+      }
       button {
         background: linear-gradient(#888 40%, #777 70%);
         border: 1px solid #999;
@@ -88,7 +91,7 @@
         background: #bbb
       }
       #missionType {
-        margin:18px 10px 2px 3px;
+        margin:16px 10px 3px 3px;
         height:25px;
         width:150px;
         background-color:#ccc;
@@ -174,8 +177,8 @@
       </div>
 
       <div class="menu">
-        <select id="missionType"></select>
-        <div id="menuC" class="tabs-container"></div>
+        <div class="menu-wrapper"><select id="missionType"></select></div>
+        <div id="menuC" class="tabs-container" style="flex:1"></div>
       </div>
       <div id="tabC" class="tabs-container" hidden></div>
       <div id="missionC" style="display:no"></div>
