@@ -1,23 +1,15 @@
-﻿List = function(container, header) 
+﻿List = function(containerSelector, header) 
 {
-  var thead = document.createElement("THEAD");
-  var table = document.createElement("TABLE");
-  var tbody = document.createElement("TBODY");
-  table.appendChild(thead);
-  table.appendChild(tbody);
+  var thead = $("<thead></thead>");
+  var tbody = $("<tbody></tbody>");
 
-  var tableH = document.createElement("DIV");
-  tableH.className = "list-table-header";
-  var tableD = document.createElement("DIV");
-  tableD.className = "list-table-container";
-  tableD.appendChild(table);
-  container.appendChild(tableH);
-  container.appendChild(tableD);
+  $(containerSelector).append($("<div></div>").addClass("list-table-header"))
+    .append($("<div></div>").addClass("list-table-container").append(
+          $("<table></table>").append(thead).append(tbody)));
   
   this.thead = thead;
-  this.tbody = tbody;
+  this.tbody = tbody.get(0);
 
-  this.container = container;
   this.header = header;
   this.currentList;
 }
@@ -76,51 +68,32 @@ List.prototype.createList = function (dataList, titleKey)
       var td = document.createElement("TD");
       tr.appendChild(td);
     }
-    //tr.appendChild(td);
 
     this.tbody.appendChild(tr);
   }
 
   // reset thead
-  var tr = document.createElement("TR");
+  var tr = $("<tr></tr>");
   var header = this.header;
   for (var i = 0; i < header.length; ++i)
   {
-    var realth = document.createElement("TH");
-    var th = document.createElement("div");
-    th.className = "th-inner";
-    th.innerHTML = header[i].title;
+    var th = $("<div></div>").addClass("th-inner").html(header[i].title);
     if (header[i].style) 
-      th.setAttribute("style", header[i].style);
+      th.attr("style", header[i].style);
     if (header[i].titleClicked)
     {
-      th.titleClicked = header[i].titleClicked;
-      th.onclick = function(){
-        var brothers = this.parentNode.childNodes;
-        for (var i = 0; i < brothers.length; ++i)
-          brothers[i].removeAttribute("selected");
-        this.setAttribute("selected", "");
-        this.titleClicked(this)
-      }
+      th.on("click", header[i].titleClicked, function(event){
+        $(".th-inner").removeAttr("selected");
+        $(this).attr("selected", "");
+        event.data(this);
+      });
     }
     if (header[i].width)
-      th.style.width = header[i].width;
-    realth.appendChild(th);
-    tr.appendChild(realth);
+      th.css("width", header[i].width);
+    tr.append($("<th></th>").append(th));
   }
-  if (this.thead.firstChild)
-    this.thead.removeChild(this.thead.firstChild);
-  this.thead.appendChild(tr);
+  this.thead.empty().append(tr);
   
   this.updateList();
 }
 
-List.prototype.show = function ()
-{
-  this.container.removeAttribute("hidden");
-}
-
-List.prototype.hide = function ()
-{
-  this.container.setAttribute("hidden", true);
-}

@@ -2,7 +2,7 @@ var menuC = new Tab($('#menuC').get(0), menuClickCallback);
 var tabC = new Tab($('#tabC').get(0), tabClickCallback);
 
 var nameStyle = "text-align: left;padding-left: 10px";
-var missionListC = new List($('#missionListC').get(0),
+var missionListC = new List('#missionListC',
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合"},
     {key: "unMatch", title:"未對應", style:nameStyle},
@@ -31,8 +31,8 @@ var followerListTable = [
     {key: "countOutput", title: "出場率", style:nameStyle+";white-space: nowrap;overflow:hidden",
       titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
-var followerListC = new List($('#followerListC').get(0), followerListTable);
-var abilityListC = new List($('#abilityListC').get(0),
+var followerListC = new List('#followerListC', followerListTable);
+var abilityListC = new List('#abilityListC',
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
     {key:"possible",title:"可期望名單", style:nameStyle},
@@ -171,9 +171,8 @@ $("#choose_file").click(function(e)
 
 $('#open').click(function()
 {
-  $("#input").val("");
   $("#cover").css("display",  "block");
-  $("#input").focus();
+  $("#input").val("").focus();
 });
 $("#close").click(function() { $("#cover").css("display",  "none");});
 
@@ -222,13 +221,6 @@ $(document).ready(function() {
     $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0].list;
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
-//  body.removeChild(body.querySelector("#missionListC"));
-//  body.removeChild(body.querySelector("#abilityListC"));
-});
-window.addEventListener("resize", function() {
-  var th = followerListC.thead.childNodes[0].childNodes[11];
-  var td = followerListC.tbody.childNodes[0].childNodes[11];
-//  th.style.width = td.offsetWidth;
 });
 
 function initAbilityList()
@@ -336,19 +328,18 @@ var sortTitleIdx = -1;
 function sortFDB (ele) 
 {
   sortTitleIdx = -1;
-  var brothers = ele.parentNode.childNodes;
-  for (var i = 0; i < brothers.length; ++i)
+  $(ele).parents("thead").find(".th-inner").each(function(i)
   {
-    if (ele.innerHTML.match(followerListTable[i].title))
+    if ($(ele).text().match(followerListTable[i].title))
     {
       sortTitleIdx = i;
       sortFlag = (Math.abs(sortFlag) == (i + 1)) ? - sortFlag : (- (i + 1));
-      ele.innerHTML = followerListTable[i].title + ((sortFlag > 0) ? "△" : "▽");
+      $(ele).text(followerListTable[i].title + ((sortFlag > 0) ? "△" : "▽"));
       FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[i].sortSeq); });
     }
     else
-      brothers[i].innerHTML = followerListTable[i].title;
-  }
+      $(this).text(followerListTable[i].title);
+  });
 
   followerListC.updateList();
 };
