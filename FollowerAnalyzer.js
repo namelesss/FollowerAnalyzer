@@ -157,14 +157,15 @@ $("#choose_file").click(function(e)
 
 $('#open').click(function()
 {
-  $("#cover").css("display",  "block");
+  $("#cover").show();
   $("#input").val("").focus();
 });
-$("#close").click(function() { $("#cover").css("display",  "none");});
+
+$("#close").click(function() { $("#cover").hide();});
 
 $("#from_string").click(function()
 {
-  $("#cover").css("display", "none");
+  $("#cover").hide();
   fetchData($("#input").val());
   $('#file_path').val("字串輸入");
 });
@@ -177,6 +178,7 @@ function selectMission(type)
     if (m.type == type)
     {
       curMission = m;
+      $("#cover2").show();
       setTimeout(function () 
       {
         genMatchList();
@@ -188,6 +190,7 @@ function selectMission(type)
         if (sortTitleIdx >= 0)
           FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
         followerListC.updateList();
+        $("#cover2").hide();
       }, 0);
 
       return;

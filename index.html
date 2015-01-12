@@ -65,7 +65,7 @@
       [readonly] {
         background: #bbb;
       }
-      #cover{ 
+      .cover{ 
         position:fixed; 
         top:0; 
         left:0; 
@@ -88,6 +88,21 @@
         width:640px;
         height:400px;
         padding:10px;
+      }
+      #message {
+        position:absolute;
+        border:1px solid #999;        
+        left:50%;
+        top:50%;
+        margin-left:-100px;
+        margin-top:-20px;
+        width:200px;
+        height:40px;
+        line-height:40px;
+        background-color: #242424;
+        text-size:50%;
+        padding: 0 10px;
+        color:#999;
       }
       textarea {
         flex:1;
@@ -194,7 +209,7 @@
       <div id="abilityListC" class="list-container" style="flex:1"></div>
     </div>
 
-    <div id="cover">
+    <div id="cover" class="cover">
       <div id="popup">
         <div class="menu">
           <button id="from_string">開始計算</button>
@@ -203,6 +218,9 @@
         </div>
         <textarea id="input"></textarea>
       </div>
+    </div>
+    <div id="cover2" class="cover">      
+      <div id="message"><span style="margin:0 auto">計算中．．．<span></div>
     </div>
     <script src="tab/Tab.js"></script>
     <script src="list/List.js"></script>
