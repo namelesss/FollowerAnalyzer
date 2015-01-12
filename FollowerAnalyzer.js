@@ -191,15 +191,18 @@ function selectMission(type)
     if (m.type == type)
     {
       curMission = m;
-      genMatchList();
+      setTimeout(function () 
+      {
+        genMatchList();
 
-      var tabs = {};
-      for (var j = 0; j < m.list.length; ++j)
-        tabs[j] = {name:("任務"+(j+1))};
-      tabC.createTab(tabs);
-      if (sortTitleIdx >= 0)
-        FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
-      followerListC.updateList();
+        var tabs = {};
+        for (var j = 0; j < m.list.length; ++j)
+          tabs[j] = {name:("任務"+(j+1))};
+        tabC.createTab(tabs);
+        if (sortTitleIdx >= 0)
+          FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
+        followerListC.updateList();
+      }, 0);
 
       return;
     }
