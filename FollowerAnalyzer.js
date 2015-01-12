@@ -48,11 +48,11 @@ function tabClickCallback(tab)
 {
   var idx = parseInt(tab);
 
-  var h = ((curMission[idx].type != 0) ? (genImg(TRAIT[curMission[idx].type]) + " + ") : "");
-  for (var e in curMission[idx].encounters)
-    h += genImg(ABILITY[curMission[idx].encounters[e]], true);
+  var h = ((curMission.list[idx].type != 0) ? (genImg(TRAIT[curMission.list[idx].type]) + " + ") : "");
+  for (var e in curMission.list[idx].encounters)
+    h += genImg(ABILITY[curMission.list[idx].encounters[e]], true);
    $("#missionC").html(h);
-  missionListC.createList(MATCHDB[idx]);
+  missionListC.createList(MATCHDB[curMission.type][idx]);
 }
 
 function menuClickCallback(menu)
@@ -190,7 +190,7 @@ function selectMission(type)
     var m = MISSIONS[i];
     if (m.type == type)
     {
-      curMission = m.list;
+      curMission = m;
       genMatchList();
 
       var tabs = {};
@@ -219,7 +219,7 @@ $(document).ready(function() {
   }
   for (var i in MISSIONS)
     $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
-  curMission = MISSIONS[0].list;
+  curMission = MISSIONS[0]
   menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
 });
 
@@ -421,38 +421,39 @@ function appenedFollower(item, key, follower)
   item[key] += genFollowerName(follower);
 }
 
-function genMatchList()
+function calMatchDB(matchList)
 {
-  var matchCount = [];
-  for (var i = 0; i < curMission.length; ++i)
+  for (var i = 0; i < curMission.list.length; ++i)
   {
-    MATCHDB[i] = [];
-    matchCount[i] = 0;
+    matchList[i] = [];
     for (var f = 0; f < FOLLOWERDB.length; ++f)
-      FOLLOWERDB[f].countQuest[i] = 0;
+    {
+      if (!FOLLOWERDB[f].countQuest[curMission.type]) 
+        FOLLOWERDB[f].countQuest[curMission.type] = [];
+      FOLLOWERDB[f].countQuest[curMission.type][i] = 0;
+    }
 
-    MatchMission(FOLLOWERDB, curMission[i], MATCHDB[i], 1.0);
-    if (MATCHDB[i].length == 0)
+    MatchMission(FOLLOWERDB, curMission.list[i], matchList[i], 1.0);
+    if (matchList[i].length == 0)
     {
       var bound = 0.95, MATCH_MAX = 10;
       do
       {
-        MATCHDB[i] = [];
-        MatchMission(FOLLOWERDB, curMission[i], MATCHDB[i], bound);
+        matchList[i] = [];
+        MatchMission(FOLLOWERDB, curMission.list[i], matchList[i], bound);
         bound -= 0.05;
-      }while (MATCHDB[i].length < MATCH_MAX);
+      }while (matchList[i].length < MATCH_MAX);
     }
     // sort
-    MATCHDB[i].sort(function(a, b) { return b.rate - a.rate; });
+    matchList[i].sort(function(a, b) { return b.rate - a.rate; });
 
-    for (var j = 0; j < MATCHDB[i].length; ++j)
+    for (var j = 0; j < matchList[i].length; ++j)
     {
-      var curMatch = MATCHDB[i][j];
+      var curMatch = matchList[i][j];
 
-      matchCount[i]++;
-      FOLLOWERDB[curMatch.team[0]].countQuest[i]++;
-      FOLLOWERDB[curMatch.team[1]].countQuest[i]++;
-      FOLLOWERDB[curMatch.team[2]].countQuest[i]++;
+      FOLLOWERDB[curMatch.team[0]].countQuest[curMission.type][i]++;
+      FOLLOWERDB[curMatch.team[1]].countQuest[curMission.type][i]++;
+      FOLLOWERDB[curMatch.team[2]].countQuest[curMission.type][i]++;
 
       curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
       curMatch.matchComp = genMatchTable(curMatch);
@@ -467,18 +468,25 @@ function genMatchList()
       curMatch.qTime = genTime(curMatch.questTime, (curMatch.traitMatchList.indexOf(221) >= 0));
     }
   }
+}
+
+function genMatchList()
+{
+  if (!MATCHDB[curMission.type])
+    calMatchDB(MATCHDB[curMission.type] = [])
+
   // fill average to FOLLOWERDB
   for (var f in FOLLOWERDB)
   {
     var average = 0; 
     FOLLOWERDB[f].countOutput = "";
-    for (var i = 0; i < curMission.length; ++i)
+    for (var i = 0; i < curMission.list.length; ++i)
     {
       var count = 0;
-      if (FOLLOWERDB[f].countQuest[i] == 0 || matchCount[i] == 0)
+      if (FOLLOWERDB[f].countQuest[curMission.type][i] == 0 || MATCHDB[curMission.type][i].length == 0)
          count = 0;
       else
-        count = FOLLOWERDB[f].countQuest[i] * 100 / matchCount[i];
+        count = FOLLOWERDB[f].countQuest[curMission.type][i] * 100 / MATCHDB[curMission.type][i].length;
       if (count > 50)
         FOLLOWERDB[f].countOutput += genText(count.toFixed(2)+"% ", "red");
       else
