@@ -104,6 +104,16 @@
         padding-left:10px;
         color:#bbb;
       }
+      #optionPanel {
+        position: absolute;
+        border:1px solid #999;
+        right:150px;
+        top:20%;
+        width:150px;
+        height:100px;
+        z-index: 15;
+        display:none; 
+      }
       textarea {
         flex:1;
         resize:none;
@@ -194,6 +204,7 @@
         <button id="choose_file">從檔案</button>
         <button id="refresh">重讀檔案</button>
         <input type="text" id="file_path" readonly>
+        <button id="option">選項</button>
       </div>
 
       <div class="menu">
@@ -219,8 +230,12 @@
         <textarea id="input"></textarea>
       </div>
     </div>
-    <div id="coverMsg" class="cover">      
-      <div id="message">計算中．．．</div>
+    <div id="coverMsg" class="cover"><div id="message">計算中．．．</div></div>
+    <div id="optionPanel">
+      <input type="radio" name="ilv" value="1">1</input>
+      <input type="radio" name="ilv" value="2">2</input>
+      <input type="radio" name="ilv" value="3">3</input>
+      <input type="checkbox" name="active">active</input>
     </div>
     <script src="tab/Tab.js"></script>
     <script src="list/List.js"></script>

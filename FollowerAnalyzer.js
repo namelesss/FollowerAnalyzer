@@ -170,6 +170,11 @@ $("#from_string").click(function()
   $('#file_path').val("字串輸入");
 });
 
+$("#option").click(function()
+{
+  $("#optionPanel").toggle();
+});
+
 function selectMission(type)
 {
   for (var i = 0; i < MISSIONS.length; ++i)
