@@ -54,8 +54,8 @@ function tabClickCallback(tab)
   var idx = parseInt(tab);
 
   var h = ((curMission.list[idx].type != 0) ? (genImg(TRAIT[curMission.list[idx].type]) + " + ") : "");
-  for (var e in curMission.list[idx].encounters)
-    h += genImg(ABILITY[curMission.list[idx].encounters[e]], true);
+  for (var e in curMission.list[idx].threats)
+    h += genImg(ABILITY[curMission.list[idx].threats[e]], true);
    $("#missionC").html(h);
   missionListC.createList(MATCHDB[curMission.type][idx]);
 }
@@ -170,10 +170,11 @@ $("#from_string").click(function()
   $('#file_path').val("字串輸入");
 });
 
-$("#option").click(function()
-{
-  $("#optionPanel").toggle();
-});
+$("#option").click(function() { $("#optionPanel").show(); });
+
+$("#optionPanel").mouseleave(function() { $("#optionPanel").hide(); });
+
+
 
 function selectMission(type)
 {
@@ -286,7 +287,7 @@ function genMacthTable_follower_abi_img(abi, countered)
   return abiImg[0].outerHTML;
 }
 
-function genMacthTable_followerDOM(f, matchedFlag)
+function genMacthTable_follower(f, matchedFlag)
 {
   var lowILV = f.iLevel < 645;  // strick to 645?
   var follower = $("<div></div").addClass("follower");
@@ -296,7 +297,9 @@ function genMacthTable_followerDOM(f, matchedFlag)
     followerAbis.append(genMacthTable_follower_abi_img(f.abilities[i], matchedFlag & Math.pow(2,i)));
   
   var followerName = $("<div></div").addClass("follower name");
-  followerName.html(genFollowerName(f) + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true));
+  followerName.html(genFollowerName(f)
+      + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true)
+      + (f.active ? "" : "*"));
 
   follower.append(followerAbis);
   follower.append(followerName);
@@ -308,7 +311,7 @@ function genMatchTable(matchData)
 {
   var fTable = $("<div></div").addClass("followers");
   for (var i = 0; i < matchData.team.length; ++i)
-    fTable.append(genMacthTable_followerDOM(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
+    fTable.append(genMacthTable_follower(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
 
   return fTable[0].outerHTML;
 }
@@ -370,7 +373,7 @@ function genFollowerList(dataArray)
     follower.quality = parseInt(str[3]);
     follower.level = parseInt(str[4]);
     follower.iLevel = parseInt(str[5]);
-    follower.active = (str[6] == "inactive") ? 0 : 1;
+    follower.active = !(str[6] == "inactive");
     if (str[7]) abi.push(parseInt(str[7]));
     if (str[8]) abi.push(parseInt(str[8]));
     if (str[9]) tra.push(parseInt(str[9]));
@@ -422,7 +425,6 @@ function calMatchDB(matchList)
 {
   for (var i = 0; i < curMission.list.length; ++i)
   {
-    matchList[i] = [];
     for (var f = 0; f < FOLLOWERDB.length; ++f)
     {
       if (!FOLLOWERDB[f].countQuest[curMission.type]) 
@@ -430,14 +432,13 @@ function calMatchDB(matchList)
       FOLLOWERDB[f].countQuest[curMission.type][i] = 0;
     }
 
-    MatchMission(FOLLOWERDB, curMission.list[i], matchList[i], 1.0);
+    matchList[i] = MatchMission(curMission.list[i], 1.0);
     if (matchList[i].length == 0)
     {
       var bound = 0.95, MATCH_MAX = 10;
       do
       {
-        matchList[i] = [];
-        MatchMission(FOLLOWERDB, curMission.list[i], matchList[i], bound);
+        matchList[i] = MatchMission(curMission.list[i], bound);
         bound -= 0.05;
       }while (matchList[i].length < MATCH_MAX);
     }
@@ -495,16 +496,16 @@ function genMatchList()
   }
 }
 
-function matchEncounter(encounters, abilities)
+function matchEncounter(threats, abilities)
 {
   var idx;
   var matched = 0;
   for (var i in abilities)
   {
-    idx = encounters.indexOf(abilities[i]);
+    idx = threats.indexOf(abilities[i]);
     if (idx >= 0)
     {
-      encounters.splice(idx, 1);
+      threats.splice(idx, 1);
       matched |= (1 << i); // bit1:abi[0] bit2:abi[1]
     }
   }
@@ -513,9 +514,10 @@ function matchEncounter(encounters, abilities)
 
 function successRate(quest, numUnMatch, followers, matchInfo)
 {
-  var needNumAbilities = quest.encounters.length;
-  var base = quest.encounters.length * 3 + 3; // 3-man Raid Specific
-  var abiMatch = needNumAbilities - numUnMatch;
+  var numThreats = quest.threats.length;
+  var needNumFollowers = 3; // 3-man Raid Specific
+  var base = quest.threats.length * 3 + needNumFollowers;
+  var abiMatch = numThreats - numUnMatch;
   var traitMatchList = [];
   var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0;
 
@@ -562,29 +564,30 @@ function successRate(quest, numUnMatch, followers, matchInfo)
 }
 
 var only100 = true;
-function MatchMission(data, quest, match, threshold)
+function MatchMission(quest, threshold)
 {
-  var count = 0;
-  for (var a = 0; a < data.length; ++a)
+  var match = [];
+  var fData = FOLLOWERDB;
+  for (var a = 0; a < fData.length; ++a)
   {
-    if (only100 && data[a].level < 100) continue;
-    var encLeft1 = quest.encounters.slice(0);
-    var matchedFlag1 = matchEncounter(encLeft1, data[a].abilities);
+    if (only100 && fData[a].level < 100) continue;
+    var encLeft1 = quest.threats.slice(0);
+    var matchedFlag1 = matchEncounter(encLeft1, fData[a].abilities);
     
-    for (var b = a + 1; b < data.length; ++b)
+    for (var b = a + 1; b < fData.length; ++b)
     {
-      if (only100 && data[b].level < 100) continue;
+      if (only100 && fData[b].level < 100) continue;
       var encLeft2 = encLeft1.slice(0);
-      var matchedFlag2 = matchEncounter(encLeft2, data[b].abilities);
+      var matchedFlag2 = matchEncounter(encLeft2, fData[b].abilities);
       
-      for (var c = b + 1; c < data.length; ++c)
+      for (var c = b + 1; c < fData.length; ++c)
       {
-        if (only100 && data[c].level < 100) continue;
+        if (only100 && fData[c].level < 100) continue;
         var encLeft3 = encLeft2.slice(0);
-        var matchedFlag3 = matchEncounter(encLeft3, data[c].abilities);
+        var matchedFlag3 = matchEncounter(encLeft3, fData[c].abilities);
         
         var matchInfo = {};
-        var rate = successRate(quest, encLeft3.length, [data[a], data[b], data[c]], matchInfo);
+        var rate = successRate(quest, encLeft3.length, [fData[a], fData[b], fData[c]], matchInfo);
 
         if (rate < threshold)
           continue;
@@ -598,45 +601,46 @@ function MatchMission(data, quest, match, threshold)
       }
     }
   }
+  return match;
 }
 
 
 var MISSIONS = [
   { type:"天槌團隊任務", iLevel:645, rewards:"天槌寶箱", list:[
-      { type:48, encounters:[10,8,2,6,9,1], time:8}, //trait 227,228?
-      { type:49, encounters:[1,9,6,8,9,10], time:8},
-      { type:38, encounters:[2,10,7,4,9,10], time:8},
-      { type:40, encounters:[1,3,3,6,7,4], time:8}
+      { type:48, threats:[10,8,2,6,9,1], time:8}, //trait 227,228?
+      { type:49, threats:[1,9,6,8,9,10], time:8},
+      { type:38, threats:[2,10,7,4,9,10], time:8},
+      { type:40, threats:[1,3,3,6,7,4], time:8}
     ]},
   { type:"黑石團隊任務", iLevel:645, rewards:"黑石寶箱", list:[
-      { type:7, encounters:[2,6,1,3,3,10], time:8},
-      { type:4, encounters:[1,2,6,3,9,10], time:8},
-      { type:45, encounters:[4,7,6,7,4,8], time:8},
-      { type:41, encounters:[6,3,10,1,9,7], time:8}
+      { type:7, threats:[2,6,1,3,3,10], time:8},
+      { type:4, threats:[1,2,6,3,9,10], time:8},
+      { type:45, threats:[4,7,6,7,4,8], time:8},
+      { type:41, threats:[6,3,10,1,9,7], time:8}
     ]},
-  { type:"645紫裝任務", iLevel:645, rewards:"645裝備", list:[
-      { type:40, encounters:[1,8,2,9], time:8}, // weapon
-      { type:4, encounters:[8,10,4,8], time:8}, // sholder
-      { type:4, encounters:[6,10,1,2], time:8}, // chest
-      { type:38, encounters:[8,9,1,7], time:8}, // feet
-      { type:4, encounters:[6,10,2,10], time:8}, // neck
-      { type:43, encounters:[8,9,9,10], time:8}, // trinket
-      { type:39, encounters:[6,3,1,10], time:8}, // waist
+  { type:"645紫裝任務", iLevel:630, rewards:"645裝備", list:[
+      { type:40, threats:[1,8,2,9], time:8}, // weapon
+      { type:4, threats:[8,10,4,8], time:8}, // sholder
+      { type:4, threats:[6,10,1,2], time:8}, // chest
+      { type:38, threats:[8,9,1,7], time:8}, // feet
+      { type:4, threats:[6,10,2,10], time:8}, // neck
+      { type:43, threats:[8,9,9,10], time:8}, // trinket
+      { type:39, threats:[6,3,1,10], time:8}, // waist
     ]},
   { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
-      { type:38, encounters:[6,2,8,7], time:24},
-      { type:0, encounters:[2,1,10,3], time:24},
-      { type:39, encounters:[4,1,2,7,9], time:24},
-      { type:0, encounters:[3,7,8,6], time:24},
-      { type:42, encounters:[8,4,3,6,8], time:24}
+      { type:38, threats:[6,2,8,7], time:24},
+      { type:0, threats:[2,1,10,3], time:24},
+      { type:39, threats:[4,1,2,7,9], time:24},
+      { type:0, threats:[3,7,8,6], time:24},
+      { type:42, threats:[8,4,3,6,8], time:24}
     ]},
   { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
-      { type:36, encounters:[4,9,8,2,3], time:24},
-      { type:45, encounters:[7,2,3,9,2,3], time:24},
-      { type:0, encounters:[1,8,4,7,6,2], time:24},
-      { type:49, encounters:[8,6,3,9,2,3], time:24},
-      { type:9, encounters:[9,6,1,9,3,2], time:24},
-      { type:4, encounters:[7,3,1,2,10,6], time:24}
+      { type:36, threats:[4,9,8,2,3], time:24},
+      { type:45, threats:[7,2,3,9,2,3], time:24},
+      { type:0, threats:[1,8,4,7,6,2], time:24},
+      { type:49, threats:[8,6,3,9,2,3], time:24},
+      { type:9, threats:[9,6,1,9,3,2], time:24},
+      { type:4, threats:[7,3,1,2,10,6], time:24}
     ]}
 ];
 

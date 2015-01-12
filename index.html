@@ -54,7 +54,7 @@
       button:not(:disabled):active {
         background: linear-gradient(#888 40%, #777 70%);
       }
-      input {
+      #file_path {
         flex:1;
         -webkit-user-select: none;
         margin: 0px 3px;
@@ -100,17 +100,19 @@
         height:40px;
         line-height:40px;
         background-color: #242424;
-        font-size:30%;
+        font-size:10pt;
         padding-left:10px;
         color:#bbb;
       }
       #optionPanel {
         position: absolute;
+        background-color: #242424;
+        color:#bbb;
         border:1px solid #999;
-        right:150px;
-        top:20%;
-        width:150px;
-        height:100px;
+        right:10px;
+        top:40px;
+        padding: 5px;
+        font-size:10pt;
         z-index: 15;
         display:none; 
       }
@@ -232,10 +234,10 @@
     </div>
     <div id="coverMsg" class="cover"><div id="message">計算中．．．</div></div>
     <div id="optionPanel">
-      <input type="radio" name="ilv" value="1">1</input>
-      <input type="radio" name="ilv" value="2">2</input>
-      <input type="radio" name="ilv" value="3">3</input>
-      <input type="checkbox" name="active">active</input>
+      <input type="radio" name="ilv" value="1" checked>提至任務裝等</input><br>
+      <input type="radio" name="ilv" value="2">最高裝等(655)</input><br>
+      <input type="radio" name="ilv" value="3">使用現有裝等</input><hr>
+      <input type="checkbox" name="active">忽略停用</input>
     </div>
     <script src="tab/Tab.js"></script>
     <script src="list/List.js"></script>
