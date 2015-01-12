@@ -178,7 +178,7 @@ function selectMission(type)
     if (m.type == type)
     {
       curMission = m;
-      $("#cover2").show();
+      $("#coverMsg").show();
       setTimeout(function () 
       {
         genMatchList();
@@ -190,7 +190,7 @@ function selectMission(type)
         if (sortTitleIdx >= 0)
           FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
         followerListC.updateList();
-        $("#cover2").hide();
+        $("#coverMsg").hide();
       }, 0);
 
       return;
