@@ -142,7 +142,7 @@ $("#choose_file").click(function(e)
 {
   chrome.fileSystem.chooseEntry({type: 'openFile', 
                                  accepts: [{extensions: ["csv"]}],
-                                 acceptsAllTypes: false }, function(theEntry) 
+                                 acceptsAllTypes: true }, function(theEntry) 
   {
     if (chrome.runtime.lastError || !theEntry) 
     {
@@ -613,7 +613,7 @@ var MISSIONS = [
       { type:4, encounters:[1,2,6,3,9,10], time:8},
       { type:45, encounters:[4,7,6,7,4,8], time:8},
       { type:41, encounters:[6,3,10,1,9,7], time:8}
-    ]},    
+    ]},
   { type:"645紫裝任務", iLevel:645, rewards:"645裝備", list:[
       { type:40, encounters:[1,8,2,9], time:8}, // weapon
       { type:4, encounters:[8,10,4,8], time:8}, // sholder
