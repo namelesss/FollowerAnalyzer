@@ -1,5 +1,10 @@
 var menuC = new Tab($('#menuC').get(0), menuClickCallback);
 var tabC = new Tab($('#tabC').get(0), tabClickCallback);
+var mainTabs = {
+  followerMenu: {name:"追隨者", selector:"#followerListC"},
+  missionMenu: {name:"任務", selector:"#mission-wrapper"}, 
+  abilityMenu:{name:"技能組", selector:"#abilityListC"}
+};
 
 var nameStyle = "text-align: left;padding-left: 10px";
 var missionListC = new List('#missionListC',
@@ -57,27 +62,8 @@ function tabClickCallback(tab)
 
 function menuClickCallback(menu)
 {
-  if (menu == "followerMenu")
-  {
-    $("#missionC").hide();
-    $("#tabC").hide();
-    $(".list-container").hide();
-    $("#followerListC").show();
-  }
-  else if (menu == "missionMenu")
-  {
-    $("#missionC").show();
-    $("#tabC").show();
-    $(".list-container").hide();
-    $("#missionListC").show();
-  }
-  else if (menu == "abilityMenu")
-  {
-    $("#missionC").hide();
-    $("#tabC").hide();
-    $(".list-container").hide();
-    $("#abilityListC").show();
-  }
+  $.each(mainTabs, function () { $(this.selector).hide(); }); 
+  $(mainTabs[menu].selector).show();
 }
 
 function fetchData(dataString)
@@ -223,7 +209,7 @@ $(document).ready(function() {
   for (var i in MISSIONS)
     $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0]
-  menuC.createTab({followerMenu: {name:"追隨者"}, missionMenu: {name:"任務"}, abilityMenu:{name:"技能組"}});
+  menuC.createTab(mainTabs);
 });
 
 function initAbilityList()

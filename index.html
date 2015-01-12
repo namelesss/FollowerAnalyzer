@@ -27,6 +27,11 @@
       .menu-wrapper {
         border-bottom: 2px solid #333;
       }
+      #mission-wrapper {
+        display:flex;
+        -webkit-flex-direction: column;
+        flex:1;
+      }
       button {
         background: linear-gradient(#888 40%, #777 70%);
         border: 1px solid #999;
@@ -180,11 +185,13 @@
         <div class="menu-wrapper"><select id="missionType"></select></div>
         <div id="menuC" class="tabs-container" style="flex:1"></div>
       </div>
-      <div id="tabC" class="tabs-container" hidden></div>
-      <div id="missionC" style="display:no"></div>
-      <div id="followerListC" class="list-container" style="flex:1" hidden></div>
-      <div id="missionListC" class="list-container" style="flex:1" hidden></div>
-      <div id="abilityListC" class="list-container" style="flex:1" hidden></div>
+      <div id="mission-wrapper">
+        <div id="tabC" class="tabs-container"></div>
+        <div id="missionC" style="display:no"></div>
+        <div id="missionListC" class="list-container" style="flex:1"></div>
+      </div>
+      <div id="followerListC" class="list-container" style="flex:1"></div>
+      <div id="abilityListC" class="list-container" style="flex:1"></div>
     </div>
 
     <div id="cover">
