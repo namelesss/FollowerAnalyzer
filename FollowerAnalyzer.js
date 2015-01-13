@@ -45,7 +45,7 @@ var abilityListC = new List('#abilityListC',
     ]);
 
 var FOLLOWERDB = [];
-var MATCHDB = [];
+var MATCHDB = {};
 var AbilityList = [];
 var curMission;
 
@@ -73,7 +73,7 @@ function fetchData(dataString)
   // Fetch Data
   if (result.length < 2) return;
   FOLLOWERDB = [];
-  MATCHDB = [];
+  MATCHDB = {};
   initAbilityList();
   genFollowerList(result);
 
@@ -496,16 +496,15 @@ function genMatchList()
   }
 }
 
-function matchEncounter(threats, abilities)
+function matchEncounter(threats, f)
 {
-  var idx;
   var matched = 0;
-  for (var i in abilities)
+  for (var i in f.abilities)
   {
-    idx = threats.indexOf(abilities[i]);
-    if (idx >= 0)
+    var abi = f.abilities[i];
+    if (abi in threats && threats[abi] == 0)
     {
-      threats.splice(idx, 1);
+      threats[abi] = f.id;
       matched |= (1 << i); // bit1:abi[0] bit2:abi[1]
     }
   }
@@ -568,38 +567,50 @@ function MatchMission(quest, threshold)
 {
   var match = [];
   var fData = FOLLOWERDB;
+  var encounter = {};
+  var matchFlags = [];
+  for (var i in quest.threats)
+  {
+    encounter[quest.threats[i]] = 0; // countered by follower's id, 0 if not countered
+  }
+
   for (var a = 0; a < fData.length; ++a)
   {
     if (only100 && fData[a].level < 100) continue;
-    var encLeft1 = quest.threats.slice(0);
-    var matchedFlag1 = matchEncounter(encLeft1, fData[a].abilities);
+    matchFlags[0] = matchEncounter(encounter, fData[a]);
     
     for (var b = a + 1; b < fData.length; ++b)
     {
       if (only100 && fData[b].level < 100) continue;
-      var encLeft2 = encLeft1.slice(0);
-      var matchedFlag2 = matchEncounter(encLeft2, fData[b].abilities);
+      matchFlags[1] = matchEncounter(encounter, fData[b]);
       
       for (var c = b + 1; c < fData.length; ++c)
       {
         if (only100 && fData[c].level < 100) continue;
-        var encLeft3 = encLeft2.slice(0);
-        var matchedFlag3 = matchEncounter(encLeft3, fData[c].abilities);
+        matchFlags[2] = matchEncounter(encounter, fData[c]);
         
         var matchInfo = {};
-        var rate = successRate(quest, encLeft3.length, [fData[a], fData[b], fData[c]], matchInfo);
+        var unMatchList = []; 
+          for (var i in encounter) 
+            if (encounter[i] == 0) unMatchList.push(i);
+        var rate = successRate(quest, unMatchList.length, [fData[a], fData[b], fData[c]], matchInfo);
 
-        if (rate < threshold)
-          continue;
+        if (rate >= threshold)
+          match.push({team:[a, b, c], 
+              matchedFlag:matchFlags.slice(0),
+              rate:rate, 
+              unMatchList:unMatchList, 
+              questTime:matchInfo.questTime,
+              traitMatchList:matchInfo.traitMatchList});
 
-        match.push({team:[a, b, c], 
-            matchedFlag:[matchedFlag1, matchedFlag2, matchedFlag3],
-            rate:rate, 
-            unMatchList:encLeft3, 
-            questTime:matchInfo.questTime,
-            traitMatchList:matchInfo.traitMatchList});
+        if (matchFlags[2] & 1) encounter[fData[c].abilities[0]] = 0;
+        if (matchFlags[2] & 2) encounter[fData[c].abilities[1]] = 0;
       }
+      if (matchFlags[1] & 1) encounter[fData[b].abilities[0]] = 0;
+      if (matchFlags[1] & 2) encounter[fData[b].abilities[1]] = 0;
     }
+    if (matchFlags[0] & 1) encounter[fData[a].abilities[0]] = 0;
+    if (matchFlags[0] & 2) encounter[fData[a].abilities[1]] = 0;
   }
   return match;
 }
