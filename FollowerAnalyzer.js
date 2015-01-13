@@ -293,9 +293,9 @@ function genMacthTable_follower_abi_img(abi, countered)
   return abiImg[0].outerHTML;
 }
 
-function genMacthTable_follower(f, matchedFlag)
+function genMacthTable_follower(f, iLevel, matchedFlag)
 {
-  var lowILV = f.iLevel < 645;  // strick to 645?
+  var lowILV = f.iLevel < iLevel;  // strick to 645?
   var follower = $("<div></div").addClass("follower");
 
   var followerAbis = $("<div></div").addClass("follower abis" + f.abilities.length);
@@ -313,11 +313,11 @@ function genMacthTable_follower(f, matchedFlag)
   return follower;
 }
 
-function genMatchTable(matchData)
+function genMatchTable(matchData, iLevel)
 {
   var fTable = $("<div></div").addClass("followers");
   for (var i = 0; i < matchData.team.length; ++i)
-    fTable.append(genMacthTable_follower(matchData.team[i], matchData.matchedFlag[i]));
+    fTable.append(genMacthTable_follower(matchData.team[i], iLevel, matchData.matchedFlag[i]));
 
   return fTable[0].outerHTML;
 }
@@ -460,7 +460,7 @@ function calMatchDB(matchList)
       curMatch.team[2].countQuest[curMission.type][i]++;
 
       curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
-      curMatch.matchComp = genMatchTable(curMatch);
+      curMatch.matchComp = genMatchTable(curMatch, curMission.iLevel);
       var unMatchHtml = "";
       for (var abi in curMatch.unMatchList)
         unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]], true);
