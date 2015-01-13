@@ -174,7 +174,13 @@ $("#option").click(function() { $("#optionPanel").show(); });
 
 $("#optionPanel").mouseleave(function() { $("#optionPanel").hide(); });
 
-
+var ilvOption = "required";
+$("input[name=ilv]").change(function() 
+{
+  ilvOption = $("input[name=ilv]:checked").val();
+  MATCHDB = {};
+  selectMission(curMission.type);
+});
 
 function selectMission(type)
 {
@@ -311,7 +317,7 @@ function genMatchTable(matchData)
 {
   var fTable = $("<div></div").addClass("followers");
   for (var i = 0; i < matchData.team.length; ++i)
-    fTable.append(genMacthTable_follower(FOLLOWERDB[matchData.team[i]], matchData.matchedFlag[i]));
+    fTable.append(genMacthTable_follower(matchData.team[i], matchData.matchedFlag[i]));
 
   return fTable[0].outerHTML;
 }
@@ -432,13 +438,13 @@ function calMatchDB(matchList)
       FOLLOWERDB[f].countQuest[curMission.type][i] = 0;
     }
 
-    matchList[i] = MatchMission(curMission.list[i], 1.0);
+    matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, 1.0);
     if (matchList[i].length == 0)
     {
       var bound = 0.95, MATCH_MAX = 10;
       do
       {
-        matchList[i] = MatchMission(curMission.list[i], bound);
+        matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
         bound -= 0.05;
       }while (matchList[i].length < MATCH_MAX);
     }
@@ -449,9 +455,9 @@ function calMatchDB(matchList)
     {
       var curMatch = matchList[i][j];
 
-      FOLLOWERDB[curMatch.team[0]].countQuest[curMission.type][i]++;
-      FOLLOWERDB[curMatch.team[1]].countQuest[curMission.type][i]++;
-      FOLLOWERDB[curMatch.team[2]].countQuest[curMission.type][i]++;
+      curMatch.team[0].countQuest[curMission.type][i]++;
+      curMatch.team[1].countQuest[curMission.type][i]++;
+      curMatch.team[2].countQuest[curMission.type][i]++;
 
       curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
       curMatch.matchComp = genMatchTable(curMatch);
@@ -513,18 +519,25 @@ function matchEncounter(threats, f)
   return matched;
 }
 
-function successRate(quest, numUnMatch, followers, matchInfo)
+function successRate(quest, needILV, followers, matchFlags, matchInfo)
 {
-  var numThreats = quest.threats.length;
   var needNumFollowers = 3; // 3-man Raid Specific
   var base = quest.threats.length * 3 + needNumFollowers;
-  var abiMatch = numThreats - numUnMatch;
   var traitMatchList = [];
   var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0;
 
   var raceMatch = 0;
+  var followerP = 0;
   for (var f in followers)
   {
+    // Follower Contribute
+    var calILV = needILV;
+    if (ilvOption == "current") calILV = followers[f].iLevel;
+    if (ilvOption == "highest") calILV = 655;
+    var olv = (calILV > needILV) ? 1 + Math.min(calILV - needILV, 15)/30 : 1;
+    var llv = (calILV < needILV) ? 1 - (needILV - calILV)/15 : 1;
+    var abiMatch = parseInt((matchFlags[f] + 1) / 2);
+    followerP += 3 * abiMatch * llv + olv;
     // Normal Trait Match
     for (var t in followers[f].traits)
     {
@@ -561,11 +574,11 @@ function successRate(quest, numUnMatch, followers, matchInfo)
 
   matchInfo.traitMatchList = traitMatchList;
   matchInfo.questTime = qTime;
-  return (3 * abiMatch + traitMatch + raceMatch * 0.5 + 3) / base;
+  return (followerP + traitMatch + raceMatch * 0.5) / base;
 }
 
 var only100 = true;
-function MatchMission(quest, threshold)
+function MatchMission(quest, iLevel, threshold)
 {
   var match = [];
   var fData = FOLLOWERDB;
@@ -596,10 +609,11 @@ function MatchMission(quest, threshold)
           for (var i in encounter) 
             if (encounter[i].countered == 0) 
               unMatchList.push(encounter[i].abi);
-        var rate = successRate(quest, unMatchList.length, [fData[a], fData[b], fData[c]], matchInfo);
+        var curTeam = [fData[a], fData[b], fData[c]];
+        var rate = successRate(quest, iLevel, curTeam, matchFlags, matchInfo);
 
         if (rate >= threshold)
-          match.push({team:[a, b, c], 
+          match.push({team:curTeam, 
               matchedFlag:matchFlags.slice(0),
               rate:rate, 
               unMatchList:unMatchList, 
