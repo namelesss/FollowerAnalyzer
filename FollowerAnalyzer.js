@@ -535,7 +535,7 @@ function successRate(quest, needILV, followers, matchFlags, matchInfo)
     if (ilvOption == "current") calILV = followers[f].iLevel;
     if (ilvOption == "highest") calILV = 655;
     var olv = (calILV > needILV) ? 1 + Math.min(calILV - needILV, 15)/30 : 1;
-    var llv = (calILV < needILV) ? 1 - (needILV - calILV)/15 : 1;
+    var llv = (calILV < needILV) ? 1 - Math.min(needILV - calILV, 30)/15 : 1;
     var abiMatch = parseInt((matchFlags[f] + 1) / 2);
     followerP += 3 * abiMatch * llv + olv;
     // Normal Trait Match
