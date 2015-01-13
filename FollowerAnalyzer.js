@@ -502,11 +502,13 @@ function matchEncounter(threats, f)
   for (var i in f.abilities)
   {
     var abi = f.abilities[i];
-    if (abi in threats && threats[abi] == 0)
-    {
-      threats[abi] = f.id;
-      matched |= (1 << i); // bit1:abi[0] bit2:abi[1]
-    }
+    for (var j in threats)
+      if (threats[j].abi == abi && threats[j].countered == 0)
+      {
+        threats[j].countered = f.id;
+        matched |= (1 << i); // bit1:abi[0] bit2:abi[1]
+        break;
+      }
   }
   return matched;
 }
@@ -567,11 +569,11 @@ function MatchMission(quest, threshold)
 {
   var match = [];
   var fData = FOLLOWERDB;
-  var encounter = {};
+  var encounter = [];
   var matchFlags = [];
   for (var i in quest.threats)
   {
-    encounter[quest.threats[i]] = 0; // countered by follower's id, 0 if not countered
+    encounter.push({abi:quest.threats[i], countered:0}); // countered by follower's id, 0 if not countered
   }
 
   for (var a = 0; a < fData.length; ++a)
@@ -592,7 +594,8 @@ function MatchMission(quest, threshold)
         var matchInfo = {};
         var unMatchList = []; 
           for (var i in encounter) 
-            if (encounter[i] == 0) unMatchList.push(i);
+            if (encounter[i].countered == 0) 
+              unMatchList.push(encounter[i].abi);
         var rate = successRate(quest, unMatchList.length, [fData[a], fData[b], fData[c]], matchInfo);
 
         if (rate >= threshold)
@@ -603,14 +606,17 @@ function MatchMission(quest, threshold)
               questTime:matchInfo.questTime,
               traitMatchList:matchInfo.traitMatchList});
 
-        if (matchFlags[2] & 1) encounter[fData[c].abilities[0]] = 0;
-        if (matchFlags[2] & 2) encounter[fData[c].abilities[1]] = 0;
+        for (var i in encounter)
+          if (fData[c].id == encounter[i].countered)
+            encounter[i].countered = 0;
       }
-      if (matchFlags[1] & 1) encounter[fData[b].abilities[0]] = 0;
-      if (matchFlags[1] & 2) encounter[fData[b].abilities[1]] = 0;
+      for (var i in encounter)
+        if (fData[b].id == encounter[i].countered)
+          encounter[i].countered = 0;
     }
-    if (matchFlags[0] & 1) encounter[fData[a].abilities[0]] = 0;
-    if (matchFlags[0] & 2) encounter[fData[a].abilities[1]] = 0;
+    for (var i in encounter)
+      if (fData[a].id == encounter[i].countered)
+        encounter[i].countered = 0;
   }
   return match;
 }
