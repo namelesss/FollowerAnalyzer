@@ -47,6 +47,7 @@ var abilityListC = new List('#abilityListC',
 var FOLLOWERDB = [];
 var MATCHDB = {};
 var AbilityList = [];
+var traitStatistics = {};
 var curMission;
 
 function tabClickCallback(tab)
@@ -72,7 +73,6 @@ function fetchData(dataString)
 
   // Fetch Data
   if (result.length < 2) return;
-  FOLLOWERDB = [];
   MATCHDB = {};
   initAbilityList();
   genFollowerList(result);
@@ -82,8 +82,8 @@ function fetchData(dataString)
   abilityListC.createList(AbilityList);
   // Generate Match tab data
   sortTitleIdx = -1; // Cancel sort by user
-  FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
   selectMission($("#missionType").val());
+  FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, -1, ["level", "iLevel", "average", "id"]); });  
 }
 
 function handleFile(e)
@@ -154,6 +154,18 @@ $("#choose_file").click(function(e)
     loadFileEntry(theEntry);
   });
 });
+
+$(function() { $( document ).tooltip({
+  track: true,
+  content: function () 
+  {
+    title = $(this).attr("title");
+    if (title in traitStatistics)
+      return traitStatistics[title].tooltip;
+    else
+      return title;
+  }  
+}); });
 
 $('#open').click(function()
 {
@@ -285,10 +297,11 @@ function genMacthTable_follower_abi_img(abi, countered)
 {
   var abiImg = $("<div></div").addClass("follower abi");
   if (abi)
-    abiImg.append($("<ins></ins>").css("background-image", "url('img/" + ABILITY[abi].img + ".jpg')"));
+    abiImg.append($("<ins></ins>").css("background-image", "url('img/" + ABILITY[abi].img + ".jpg')").attr("title", ABILITY[abi].name));
 
   if (countered)
-    abiImg.append($("<del></del>").addClass("follower countered"));
+    abiImg.append($("<del></del>").addClass("follower countered").attr("title", ABILITY[abi].name));
+        
 
   return abiImg[0].outerHTML;
 }
@@ -363,15 +376,25 @@ function sortFunc(a, b, ascending, list)
 
 // UI indepentant functions
 //
+function addAbiTrait(name, follower)
+{
+  if (name in traitStatistics)
+    traitStatistics[name].push(follower);
+  else
+    traitStatistics[name] = [];
+}
 // Fetch follower data from input array
 function genFollowerList(dataArray)
 {
+  FOLLOWERDB = [];
+  traitStatistics = {};
   for (var i = 1; i < dataArray.length; ++i)
   {
     var str = dataArray[i].split(",");
     if (!str[0]) continue;
     var follower = {};
-    var abi = [], tra = [];  
+    var abi = follower.abilities = [];
+    var tra = follower.traits = [];  
     follower.name = str[1];
     follower.id = str[0];
 
@@ -385,8 +408,6 @@ function genFollowerList(dataArray)
     if (str[9]) tra.push(parseInt(str[9]));
     if (str[10]) tra.push(parseInt(str[10]));
     if (str[11]) tra.push(parseInt(str[11]));
-    follower.abilities = abi;
-    follower.traits = tra;
     follower.countQuest = [];
     follower.inactive = follower.active ? "" :"☆" ;
 
@@ -417,6 +438,33 @@ function genFollowerList(dataArray)
         else if (abi[0] == AbilityList[a].abis[1] && SPEC[follower.spec].counters.indexOf(AbilityList[a].abis[0]) >= 0)
           appenedFollower(AbilityList[a], "possible", follower);
       }
+    // add to traitStatistics
+    addAbiTrait(ABILITY[abi[0]].name, follower);
+    if (1 in abi) addAbiTrait(ABILITY[abi[1]].name, follower);
+    addAbiTrait(TRAIT[tra[0]].name, follower);
+    if (1 in tra) addAbiTrait(TRAIT[tra[1]].name, follower);
+    if (2 in tra) addAbiTrait(TRAIT[tra[2]].name, follower);
+  }
+  for (var i in traitStatistics)
+  {
+    var wrapper = $("<div></div>");
+    wrapper.append($("<span></span>").css("color", "gold").text(i));
+    traitStatistics[i].sort(function (a,b) { return ((a.level == b.level) ? (b.iLevel - a.iLevel) : (b.level - a.level)); });
+    for (var t in traitStatistics[i])
+    {
+      var f = traitStatistics[i][t];
+      var level = (f.level == 100) ? f.iLevel : " "+f.level+" ";
+      wrapper.append(
+        $("<div></div>")
+          .css("font-size", "11pt")
+          .append($("<span></span>")
+            .css("color", f.nameColor)
+            .css("padding-left", "10px")
+            .text("["+level+"]"))
+          .append(" " + f.name)
+        );
+    }
+    traitStatistics[i].tooltip = wrapper.html();
   }
 }
 
