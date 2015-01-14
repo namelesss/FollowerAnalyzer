@@ -241,13 +241,15 @@ $(document).ready(function() {
   // Init statistic bar
   for (var i in ABILITY)
     $("#statistic").append(genStatisticIcon(ABILITY[i]));
-  $.each([76, 77, 221, 79], function() { $("#statistic").append(genStatisticIcon(TRAIT[this]))})
+  $.each([76, 77, 221, 79], function() { $("#statistic").append(genStatisticIcon(TRAIT[this]))});
+  $.each(RACE_MATCH, function(index) { $("#raceStatistic").append(genStatisticIcon(TRAIT[index]))});
+  $("#statistic").append(genStatisticIcon({img:TRAIT[69].img, name:"種族親合"}, true));
 });
 
-function genStatisticIcon(obj)
+function genStatisticIcon(obj, forBar)
 {
   return $("<div></div>")
-    .addClass("statisticIcon")
+    .addClass(forBar ? "statisticBarIcon" : "statisticIcon")
     .css("background-image", "url('img/" + obj.img + ".jpg')")
     .attr("title", obj.name);
 }
@@ -391,10 +393,9 @@ function sortFunc(a, b, ascending, list)
 //
 function addAbiTrait(name, follower)
 {
-  if (name in traitStatistics)
-    traitStatistics[name].push(follower);
-  else
+  if (!(name in traitStatistics))
     traitStatistics[name] = [];
+  traitStatistics[name].push(follower);
 }
 // Fetch follower data from input array
 function genFollowerList(dataArray)
@@ -479,7 +480,9 @@ function genFollowerList(dataArray)
     }
     traitStatistics[i].tooltip = wrapper.html();
   }
-  $(".statisticIcon").each(function () { $(this).text(traitStatistics[this.title].length) });
+  $(".statisticIcon").each(function () { 
+    $(this).text((this.title in traitStatistics) ? traitStatistics[this.title].length : "") 
+  });
 }
 
 function appenedFollower(item, key, follower)

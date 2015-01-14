@@ -131,9 +131,10 @@
         background-color:#ccc;
       }
       #statistic {
+        position: relative;
         margin:17px 10px 3px 0;
       }
-      .statisticIcon {
+      .statisticIcon, .statisticBarIcon {
         display: table-cell;
         text-align:center;
         font-weight:bold;
@@ -146,6 +147,16 @@
         padding:0 2px;
         background-repeat: no-repeat;
         background-size: 24px 24px;
+      }
+      .statisticBar {
+        position:absolute;
+        right: 0px;
+        top: 30px;
+        padding: 3px;
+        background-color: #242424;
+        border: 1px solid #999;
+        border-radius: 3px;
+        z-index: 5;
       }
       .ui-tooltip {
         padding: 5px;
@@ -240,7 +251,11 @@
       <div class="menu">
         <div class="menu-wrapper"><select id="missionType"></select></div>
         <div id="menuC" class="tabs-container" style="flex:1"></div>
-        <div class="menu-wrapper"><div id="statistic"></div></div>
+        <div class="menu-wrapper">
+          <div id="statistic">
+            <div id="raceStatistic" class="statisticBar"></div>
+          </div> 
+        </div>
       </div>
       <div id="mission-wrapper">
         <div id="tabC" class="tabs-container"></div>
