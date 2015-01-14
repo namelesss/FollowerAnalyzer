@@ -237,7 +237,20 @@ $(document).ready(function() {
     $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0]
   menuC.createTab(mainTabs);
+
+  // Init statistic bar
+  for (var i in ABILITY)
+    $("#statistic").append(genStatisticIcon(ABILITY[i]));
+  $.each([76, 77, 221, 79], function() { $("#statistic").append(genStatisticIcon(TRAIT[this]))})
 });
+
+function genStatisticIcon(obj)
+{
+  return $("<div></div>")
+    .addClass("statisticIcon")
+    .css("background-image", "url('img/" + obj.img + ".jpg')")
+    .attr("title", obj.name);
+}
 
 function initAbilityList()
 {
@@ -449,7 +462,7 @@ function genFollowerList(dataArray)
   {
     var wrapper = $("<div></div>");
     wrapper.append($("<span></span>").css("color", "gold").text(i));
-    traitStatistics[i].sort(function (a,b) { return ((a.level == b.level) ? (b.iLevel - a.iLevel) : (b.level - a.level)); });
+    traitStatistics[i].sort(function (a,b) { return sortFunc(a, b, -1, ["level", "iLevel", "quality"]); });
     for (var t in traitStatistics[i])
     {
       var f = traitStatistics[i][t];
@@ -466,6 +479,7 @@ function genFollowerList(dataArray)
     }
     traitStatistics[i].tooltip = wrapper.html();
   }
+  $(".statisticIcon").each(function () { $(this).text(traitStatistics[this.title].length) });
 }
 
 function appenedFollower(item, key, follower)

@@ -130,6 +130,23 @@
         width:150px;
         background-color:#ccc;
       }
+      #statistic {
+        margin:17px 10px 3px 0;
+      }
+      .statisticIcon {
+        display: table-cell;
+        text-align:center;
+        font-weight:bold;
+        vertical-align: bottom;
+        color:white;
+        text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+        font-size:12pt;
+        width:24px;
+        height:24px;
+        padding:0 2px;
+        background-repeat: no-repeat;
+        background-size: 24px 24px;
+      }
       .ui-tooltip {
         padding: 5px;
         color: white;
@@ -223,6 +240,7 @@
       <div class="menu">
         <div class="menu-wrapper"><select id="missionType"></select></div>
         <div id="menuC" class="tabs-container" style="flex:1"></div>
+        <div class="menu-wrapper"><div id="statistic"></div></div>
       </div>
       <div id="mission-wrapper">
         <div id="tabC" class="tabs-container"></div>
