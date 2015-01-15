@@ -506,7 +506,7 @@ function genFollowerList(dataArray)
             .css("color", f.nameColor)
             .css("padding-left", "10px")
             .text("["+level+"]"))
-          .append(" " + f.name)
+          .append(" " + f.name + (f.active ? "" : " *"))
         );
     }
     traitStatistics[i].tooltip = wrapper.html();
