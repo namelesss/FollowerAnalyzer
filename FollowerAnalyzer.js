@@ -473,6 +473,23 @@ function genFollowerList(dataArray)
     if (1 in tra) addAbiTrait(TRAIT[tra[1]].name, follower);
     if (2 in tra) addAbiTrait(TRAIT[tra[2]].name, follower);
   }
+
+  $(".statisticBarIcon").find("#count").text("");
+  $(".statisticIcon").each(function () 
+  { 
+    if (this.title in traitStatistics)
+    {
+      var count = traitStatistics[this.title].length;
+      $(this).text(count);
+      var ele = $(this).parents(".statisticBarIcon").find("#count");
+      ele.text(parseInt(ele.text() || 0) + count);
+    }
+    else
+    {
+      $(this).text("");
+      traitStatistics[this.title] = [];
+    }
+  });
   for (var i in traitStatistics)
   {
     var wrapper = $("<div></div>");
@@ -494,13 +511,6 @@ function genFollowerList(dataArray)
     }
     traitStatistics[i].tooltip = wrapper.html();
   }
-  $(".statisticBarIcon").find("#count").text("");
-  $(".statisticIcon").each(function () { 
-    var count = (this.title in traitStatistics) ? traitStatistics[this.title].length : "";
-    $(this).text(count);
-    var ele = $(this).parents(".statisticBarIcon").find("#count");
-    ele.text(parseInt(ele.text() || 0) + count);
-  });
 }
 
 function appenedFollower(item, key, follower)
