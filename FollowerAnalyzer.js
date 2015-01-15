@@ -494,7 +494,7 @@ function genFollowerList(dataArray)
   {
     var wrapper = $("<div></div>");
     wrapper.append($("<span></span>").css("color", "gold").text(i));
-    traitStatistics[i].sort(function (a,b) { return sortFunc(a, b, -1, ["level", "iLevel", "quality"]); });
+    traitStatistics[i].sort(function (a,b) { return sortFunc(a, b, -1, ["active", "level", "iLevel", "quality"]); });
     for (var t in traitStatistics[i])
     {
       var f = traitStatistics[i][t];
@@ -506,7 +506,9 @@ function genFollowerList(dataArray)
             .css("color", f.nameColor)
             .css("padding-left", "10px")
             .text("["+level+"]"))
-          .append(" " + f.name + (f.active ? "" : " *"))
+          .append($("<span></span>")
+            .css("color", (f.active ? "" : "Tomato"))
+            .text(" " + f.name + (f.active ? "" : " *")))
         );
     }
     traitStatistics[i].tooltip = wrapper.html();
