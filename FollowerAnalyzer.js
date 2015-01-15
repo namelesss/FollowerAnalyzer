@@ -242,14 +242,28 @@ $(document).ready(function() {
   for (var i in ABILITY)
     $("#statistic").append(genStatisticIcon(ABILITY[i]));
   $.each([76, 77, 221, 79], function() { $("#statistic").append(genStatisticIcon(TRAIT[this]))});
-  $.each(RACE_MATCH, function(index) { $("#raceStatistic").append(genStatisticIcon(TRAIT[index]))});
-  $("#statistic").append(genStatisticIcon({img:TRAIT[69].img, name:"種族親合"}, true));
+  $("#statistic").append(genStatisticBarIcon(TRAIT[69].img, RACE_MATCH));
 });
 
-function genStatisticIcon(obj, forBar)
+function genStatisticBarIcon(img, list)
+{
+  var bar = $("<div></div>").addClass("statisticBar");
+  $.each(RACE_MATCH, function(index) { bar.append(genStatisticIcon(TRAIT[index]))});
+  var icon = $("<div></div>")
+    .addClass("statisticBarIcon")
+    .css("background-image", "url('img/" + img + ".jpg')")
+    .append($("<span></span>").attr("id", "count"))
+    .append(bar);
+  icon.mouseenter(function () { $(this).find(".statisticBar").show(); });
+  icon.mouseleave(function () { $(this).find(".statisticBar").hide(); });
+  
+  return icon;
+}
+
+function genStatisticIcon(obj)
 {
   return $("<div></div>")
-    .addClass(forBar ? "statisticBarIcon" : "statisticIcon")
+    .addClass("statisticIcon")
     .css("background-image", "url('img/" + obj.img + ".jpg')")
     .attr("title", obj.name);
 }
@@ -480,8 +494,12 @@ function genFollowerList(dataArray)
     }
     traitStatistics[i].tooltip = wrapper.html();
   }
+  $(".statisticBarIcon").find("#count").text("");
   $(".statisticIcon").each(function () { 
-    $(this).text((this.title in traitStatistics) ? traitStatistics[this.title].length : "") 
+    var count = (this.title in traitStatistics) ? traitStatistics[this.title].length : "";
+    $(this).text(count);
+    var ele = $(this).parents(".statisticBarIcon").find("#count");
+    ele.text(parseInt(ele.text() || 0) + count);
   });
 }
 
