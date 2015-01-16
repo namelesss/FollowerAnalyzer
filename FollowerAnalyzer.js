@@ -44,9 +44,9 @@ var abilityListC = new List('#abilityListC',
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
 
+var ABIDB = new AbiList();
 var FOLLOWERDB = [];
 var MATCHDB = {};
-var AbilityList = [];
 var traitStatistics = {};
 var curMission;
 
@@ -74,12 +74,12 @@ function fetchData(dataString)
   // Fetch Data
   if (result.length < 2) return;
   MATCHDB = {};
-  initAbilityList();
+  ABIDB.reset();
   genFollowerList(result);
 
 
   followerListC.createList(FOLLOWERDB);
-  abilityListC.createList(AbilityList);
+  abilityListC.createList(ABIDB.list);
   // Generate Match tab data
   sortTitleIdx = -1; // Cancel sort by user
   selectMission($("#missionType").val());
@@ -268,31 +268,6 @@ function genStatisticIcon(obj)
     .attr("title", obj.name);
 }
 
-function initAbilityList()
-{
-  AbilityList = [];
-  for (var a1 = 1; a1 <= 10; ++a1)
-  {
-    if (a1 == 5) continue;
-    for (var a2 = a1+1; a2 <= 10; ++a2)
-    {
-      if (a2 == 5) continue;
-
-      var s = "";
-      for (var i in SPEC)
-        if ((SPEC[i].counters.indexOf(a1) >= 0) && (SPEC[i].counters.indexOf(a2) >= 0))
-        {
-          if (s) s+=", ";
-          s+=SPEC[i].name;
-        }
-      if (s) s = "<span style='font-size:20%'>" + s + "</span>";
-      AbilityList.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
-        followers:"", possible:"",spec:s});
-    }
-  }
-  AbilityList.sort(function(a,b){return a.spec.length - b.spec.length;});
-}
-
 // HTML Generation Functions
 function genImg(obj, inList) 
 { 
@@ -405,12 +380,6 @@ function sortFunc(a, b, ascending, list)
 
 // UI indepentant functions
 //
-function addAbiTrait(name, follower)
-{
-  if (!(name in traitStatistics))
-    traitStatistics[name] = [];
-  traitStatistics[name].push(follower);
-}
 // Fetch follower data from input array
 function genFollowerList(dataArray)
 {
@@ -437,8 +406,8 @@ function genFollowerList(dataArray)
     if (str[10]) tra.push(parseInt(str[10]));
     if (str[11]) tra.push(parseInt(str[11]));
     follower.countQuest = [];
-    follower.inactive = follower.active ? "" :"☆" ;
 
+    follower.inactive = follower.active ? "" :"☆" ;
     follower.nameColor = QUALITY[follower.quality];
     follower.nameHTML = genFollowerName(follower);
     follower.raceName = (follower.id in RACE) ? RACE[follower.id].a : follower.race;
@@ -451,21 +420,9 @@ function genFollowerList(dataArray)
     follower.countOutput = "";
     FOLLOWERDB.push(follower);
 
-    // add to AbilityList
-    for (var a = 0; a < AbilityList.length; ++a)
-      if (abi.length > 1)
-      {
-        if (abi[0] > abi[1]) {abi = [abi[1], abi[0]];}
-        if (abi[0] == AbilityList[a].abis[0] && abi[1] == AbilityList[a].abis[1])
-          appenedFollower(AbilityList[a], "followers", follower);
-      }
-      else
-      {
-        if (abi[0] == AbilityList[a].abis[0] && SPEC[follower.spec].counters.indexOf(AbilityList[a].abis[1]) >= 0)
-          appenedFollower(AbilityList[a], "possible", follower);
-        else if (abi[0] == AbilityList[a].abis[1] && SPEC[follower.spec].counters.indexOf(AbilityList[a].abis[0]) >= 0)
-          appenedFollower(AbilityList[a], "possible", follower);
-      }
+    // add to ABIDB
+    ABIDB.addFollower(follower);
+
     // add to traitStatistics
     addAbiTrait(ABILITY[abi[0]].name, follower);
     if (1 in abi) addAbiTrait(ABILITY[abi[1]].name, follower);
@@ -515,6 +472,13 @@ function genFollowerList(dataArray)
   }
 }
 
+function addAbiTrait(name, follower)
+{
+  if (!(name in traitStatistics))
+    traitStatistics[name] = [];
+  traitStatistics[name].push(follower);
+}
+
 function appenedFollower(item, key, follower)
 {
   if (item[key])
@@ -545,6 +509,11 @@ function calMatchDB(matchList)
     }
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
+    // update ability set
+    if (bound < 1)
+    {
+      
+    }
 
     for (var j = 0; j < matchList[i].length; ++j)
     {
@@ -730,6 +699,59 @@ function MatchMission(quest, iLevel, threshold)
   return match;
 }
 
+// Object of AbiList
+function AbiList()
+{
+  var list = this.list = [];
+
+  for (var a1 = 1; a1 <= 10; a1 += (a1 == 4 ? 2 : 1))
+  {
+    for (var a2 = a1+1; a2 <= 10; a2 += (a2 == 4 ? 2 : 1))
+    {
+      var s = "";
+      for (var i in SPEC)
+        if ((SPEC[i].counters.indexOf(a1) >= 0) && (SPEC[i].counters.indexOf(a2) >= 0))
+        {
+          if (s) s+=", ";
+          s+=SPEC[i].name;
+        }
+      if (s) s = "<span style='font-size:20%'>" + s + "</span>";
+      list.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
+        followers:"", possible:"",spec:s});
+    }
+  }
+  list.sort(function(a,b){return a.spec.length - b.spec.length;});
+}
+
+AbiList.prototype.addFollower = function(follower)
+{
+  var abi = follower.abilities;
+  for (var a = 0; a < ABIDB.length; ++a)
+    if (abi.length > 1)
+    {
+      if (abi[0] > abi[1]) {abi = [abi[1], abi[0]];}
+      if (abi[0] == ABIDB[a].abis[0] && abi[1] == ABIDB[a].abis[1])
+        appenedFollower(ABIDB[a], "followers", follower);
+    }
+    else
+    {
+      if (abi[0] == ABIDB[a].abis[0] && SPEC[follower.spec].counters.indexOf(ABIDB[a].abis[1]) >= 0)
+        appenedFollower(ABIDB[a], "possible", follower);
+      else if (abi[0] == ABIDB[a].abis[1] && SPEC[follower.spec].counters.indexOf(ABIDB[a].abis[0]) >= 0)
+        appenedFollower(ABIDB[a], "possible", follower);
+    }
+}
+
+AbiList.prototype.getInstance = function(abi) // [abi1, abi2]
+{
+  var abis = (abi.length == 2 && abi[0] < abi[1]);
+}
+
+AbiList.prototype.reset = function()
+{
+  for (var i in this.list)
+    this.list[i].followers = this.list[i].possible = "";
+}
 
 var MISSIONS = [
   { type:"天槌團隊任務", iLevel:645, rewards:"天槌寶箱", list:[
