@@ -44,7 +44,7 @@ var abilityListC = new List('#abilityListC',
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
 
-var ABIDB = new AbiList();
+var ABIDB;
 var FOLLOWERDB = [];
 var MATCHDB = {};
 var traitStatistics = {};
@@ -237,6 +237,7 @@ $(document).ready(function() {
     $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0]
   menuC.createTab(mainTabs);
+  ABIDB = new AbiList();
 
   // Init statistic bar
   for (var i in ABILITY)
@@ -702,11 +703,13 @@ function MatchMission(quest, iLevel, threshold)
 // Object of AbiList
 function AbiList()
 {
+  var that = this;
   var list = this.list = [];
+  var abiLookup = {};
 
   for (var a1 = 1; a1 <= 10; a1 += (a1 == 4 ? 2 : 1))
   {
-    for (var a2 = a1+1; a2 <= 10; a2 += (a2 == 4 ? 2 : 1))
+    for (var a2 = (a1==4?6:a1+1); a2 <= 10; a2 += (a2 == 4 ? 2 : 1))
     {
       var s = "";
       for (var i in SPEC)
@@ -721,30 +724,48 @@ function AbiList()
     }
   }
   list.sort(function(a,b){return a.spec.length - b.spec.length;});
+  $.each(list, function(index) { 
+      abiLookup[this.abis[0] + "+" + this.abis[1]] = index; 
+      });
+
+  this.getInstance = function (abi)
+  {
+    if (abi.constructor != Array || abi.length < 2 || abi[0] == abi[1]) return null;
+    var abis = (abi[0] < abi[1]) ? abi: [abi[1], abi[0]];
+    return list[abiLookup[abis[0] + "+" +abis[1]]];
+  }
 }
 
 AbiList.prototype.addFollower = function(follower)
 {
-  var abi = follower.abilities;
-  for (var a = 0; a < ABIDB.length; ++a)
+  if (follower.abilities.length == 2)
+    appenedFollower(this.getInstance(follower.abilities), "followers", follower);
+  else // ==1
+  {
+    var that = this;
+    var abi1 = follower.abilities[0];
+    $.each(SPEC[follower.spec].counters, function (idx, abi2) {
+      if (abi1 != abi2) 
+        appenedFollower(that.getInstance([abi1, abi2]), "possible", follower);
+    });
+  }
+
+  /*
+  for (var a = 0; a < this.list.length; ++a)
     if (abi.length > 1)
     {
       if (abi[0] > abi[1]) {abi = [abi[1], abi[0]];}
-      if (abi[0] == ABIDB[a].abis[0] && abi[1] == ABIDB[a].abis[1])
-        appenedFollower(ABIDB[a], "followers", follower);
+      if (abi[0] == this.list[a].abis[0] && abi[1] == this.list[a].abis[1])
+        appenedFollower(this.list[a], "followers", follower);
     }
     else
     {
-      if (abi[0] == ABIDB[a].abis[0] && SPEC[follower.spec].counters.indexOf(ABIDB[a].abis[1]) >= 0)
-        appenedFollower(ABIDB[a], "possible", follower);
-      else if (abi[0] == ABIDB[a].abis[1] && SPEC[follower.spec].counters.indexOf(ABIDB[a].abis[0]) >= 0)
-        appenedFollower(ABIDB[a], "possible", follower);
+      if (abi[0] == this.list[a].abis[0] && SPEC[follower.spec].counters.indexOf(this.list[a].abis[1]) >= 0)
+        appenedFollower(this.list[a], "possible", follower);
+      else if (abi[0] == this.list[a].abis[1] && SPEC[follower.spec].counters.indexOf(this.list[a].abis[0]) >= 0)
+        appenedFollower(this.list[a], "possible", follower);
     }
-}
-
-AbiList.prototype.getInstance = function(abi) // [abi1, abi2]
-{
-  var abis = (abi.length == 2 && abi[0] < abi[1]);
+    */
 }
 
 AbiList.prototype.reset = function()
