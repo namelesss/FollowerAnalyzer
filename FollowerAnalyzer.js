@@ -9,7 +9,7 @@ var mainTabs = {
 var nameStyle = "text-align: left;padding-left: 10px";
 var missionListC = new List('#missionListC',
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
-    {key: "matchComp", title:"配隊組合"},
+    {key: "matchComp", title:"配隊組合", style:"padding-left:10px"},
     {key: "unMatch", title:"未對應", style:nameStyle},
     {key: "matchTrait", title:"特長", style:nameStyle},
     {key: "qTime", title:"任務時間", style:"width:64px!important"}
@@ -41,6 +41,7 @@ var abilityListC = new List('#abilityListC',
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
     {key:"possible",title:"可期望名單", style:nameStyle},
+    {key:"needByMissions",title:"可滿足任務100%", style:nameStyle+";min-width:110px"},
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
 
@@ -214,6 +215,7 @@ function selectMission(type)
         if (sortTitleIdx >= 0)
           FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
         followerListC.updateList();
+        abilityListC.updateList();
         $("#coverMsg").hide();
       }, 0);
 
@@ -511,10 +513,22 @@ function calMatchDB(matchList)
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
     // update ability set
-    if (bound < 1)
-    {
-      
-    }
+    if (bound < 1 && curMission.list[i].threats.length == 6)
+      $.each(matchList[i], function () 
+      {
+        var flag= this.matchedFlag;
+        var idx1, idx2;
+        if ((idx1 = flag.indexOf(3)) >= 0)
+          if ((idx2 = flag.indexOf(3, idx1+1)) >= 0)
+            if (flag[3-idx1-idx2] == 0) // not Checked
+              ABIDB.addNeededAbi(this.unMatchList, curMission.type, i+1);
+            else // won't be 3
+            {
+              var idx = 3-idx1-idx2;
+              var abis = [this.team[idx].abilities[flag[idx]-1], this.unMatchList[0]];
+              ABIDB.addNeededAbi(abis, curMission.type, i + 1);
+            }
+      });
 
     for (var j = 0; j < matchList[i].length; ++j)
     {
@@ -711,16 +725,18 @@ function AbiList()
   {
     for (var a2 = (a1==4?6:a1+1); a2 <= 10; a2 += (a2 == 4 ? 2 : 1))
     {
-      var s = "";
+      var wrapper = $("<div></div>");
+      var row = "";
       for (var i in SPEC)
         if ((SPEC[i].counters.indexOf(a1) >= 0) && (SPEC[i].counters.indexOf(a2) >= 0))
         {
-          if (s) s+=", ";
-          s+=SPEC[i].name;
+          if (!row || row.children().length >= 7)
+            wrapper.append(row = $("<div></div>").css("font-size", "20%"));
+
+          row.append($("<span></span>").css("margin", "2px").text(SPEC[i].name));
         }
-      if (s) s = "<span style='font-size:20%'>" + s + "</span>";
       list.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
-        followers:"", possible:"",spec:s});
+        followers:"", possible:"", needByMissions:"",spec:wrapper.html()});
     }
   }
   list.sort(function(a,b){return a.spec.length - b.spec.length;});
@@ -749,29 +765,28 @@ AbiList.prototype.addFollower = function(follower)
         appenedFollower(that.getInstance([abi1, abi2]), "possible", follower);
     });
   }
+}
 
-  /*
-  for (var a = 0; a < this.list.length; ++a)
-    if (abi.length > 1)
-    {
-      if (abi[0] > abi[1]) {abi = [abi[1], abi[0]];}
-      if (abi[0] == this.list[a].abis[0] && abi[1] == this.list[a].abis[1])
-        appenedFollower(this.list[a], "followers", follower);
-    }
-    else
-    {
-      if (abi[0] == this.list[a].abis[0] && SPEC[follower.spec].counters.indexOf(this.list[a].abis[1]) >= 0)
-        appenedFollower(this.list[a], "possible", follower);
-      else if (abi[0] == this.list[a].abis[1] && SPEC[follower.spec].counters.indexOf(this.list[a].abis[0]) >= 0)
-        appenedFollower(this.list[a], "possible", follower);
-    }
-    */
+AbiList.prototype.addNeededAbi = function (abis, type, mission)
+{
+  if (this.getInstance(abis))
+  {
+    var wrapper = $("<div></div>").html(this.getInstance(abis).needByMissions);
+    var text = type + " - " + mission;
+    var finded = false;
+    wrapper.children().each(function() { 
+        if ($(this).text() == text) finded = true; 
+        });
+    if (! finded)
+      wrapper.append($("<div></div>").text(text));
+    this.getInstance(abis).needByMissions = wrapper.html();
+  }
 }
 
 AbiList.prototype.reset = function()
 {
   for (var i in this.list)
-    this.list[i].followers = this.list[i].possible = "";
+    this.list[i].followers = this.list[i].possible = this.list[i].needByMissions = "";
 }
 
 var MISSIONS = [
