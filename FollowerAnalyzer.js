@@ -733,12 +733,18 @@ function AbiList()
           if (!row || row.children().length >= 7)
             wrapper.append(row = $("<div></div>").css("font-size", "20%"));
 
-          row.append($("<span></span>").css("margin", "2px").text(SPEC[i].name));
+          row.append($("<div></div>").addClass("spec").attr("id",SPEC[i].name).text(SPEC[i].name));
         }
       list.push({abis:[a1,a2],abiComp:genImg(ABILITY[a1])+"+"+genImg(ABILITY[a2]),
         followers:"", possible:"", needByMissions:"",spec:wrapper.html()});
     }
   }
+  
+  $("#abilityListC").on("click", ".spec", function()
+  {
+    $("#abilityListC").find(".spec").css("color", "#ccc");
+    $("#abilityListC").find("#"+$(this).text()).css("color", "red");
+  })
   list.sort(function(a,b){return a.spec.length - b.spec.length;});
   $.each(list, function(index) { 
       abiLookup[this.abis[0] + "+" + this.abis[1]] = index; 
