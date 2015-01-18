@@ -49,6 +49,7 @@ var ABIDB;
 var FOLLOWERDB = [];
 var MATCHDB = {};
 var traitStatistics = {};
+var followerTooltip = {};
 var curMission;
 
 function tabClickCallback(tab)
@@ -57,7 +58,7 @@ function tabClickCallback(tab)
 
   var h = ((curMission.list[idx].type != 0) ? (genImg(TRAIT[curMission.list[idx].type]) + " + ") : "");
   for (var e in curMission.list[idx].threats)
-    h += genImg(ABILITY[curMission.list[idx].threats[e]], true);
+    h += genImg(ABILITY[curMission.list[idx].threats[e]], {inList:true});
    $("#missionC").html(h);
   missionListC.createList(MATCHDB[curMission.type][idx]);
 }
@@ -155,14 +156,18 @@ $("#choose_file").click(function(e)
     loadFileEntry(theEntry);
   });
 });
-
+// $xxx = id
+// %xxx = trait
 $(function() { $( document ).tooltip({
   track: true,
   content: function () 
   {
-    title = $(this).attr("title");
-    if (title in traitStatistics)
+    var title = $(this).attr("title");
+    var code = title.charAt(0);
+    if (code == '%' && (title = title.slice(1)) in traitStatistics)
       return traitStatistics[title].tooltip;
+    else if (code == '$' && (title = title.slice(1)) in followerTooltip)
+      return followerTooltip[title];
     else
       return title;
   }  
@@ -268,46 +273,53 @@ function genStatisticIcon(obj)
   return $("<div></div>")
     .addClass("statisticIcon")
     .css("background-image", "url('img/" + obj.img + ".jpg')")
-    .attr("title", obj.name);
+    .attr("title", "%" + obj.name);
 }
 
 // HTML Generation Functions
-function genImg(obj, inList) 
+function genImg(obj, opt, jquery) 
 { 
   var img = $("<img>");
   img.attr("src", "img/" + obj.img + ".jpg");
-  if (obj.name) img.attr("title", obj.name);
-  if (inList) img.css("margin", "0 2");
-
-  return img[0].outerHTML; 
-}
-
-function genText(text, color, nowrap)
-{
-  var t = $("<span>"+text+"</span>");
-  if (color) t.css("color", color);
-  if (nowrap)
+  if (obj.name) img.attr("title", "%" + obj.name);
+  if (typeof opt == "object")
   {
-    t.css("whiteSpace", "nowrap");
-    t.css("overflow", "hidden");
+    if (opt.inList) img.css("margin", "0 2");
   }
 
-  return t[0].outerHTML;
+  return ((jquery) ? img : img[0].outerHTML); 
+}
+
+function genText(text, opt, jquery)
+{
+  var t = $("<span>"+text+"</span>");
+  if (typeof opt == "object")
+  {
+    if (opt.color) t.css("color", opt.color);
+    if (opt.nowrap)
+    {
+      t.css("whiteSpace", "nowrap");
+      t.css("overflow", "hidden");
+    }
+    if (opt.title) t.attr("title", opt.title);
+  }
+
+  return ((jquery) ? t : t[0].outerHTML);
 }
 
 function genFollowerName(f, specColor)
 {
-  return genText(f.name, f.nameColor, true);
+  return genText(f.name, {color:f.nameColor, nowrap:true, title:"$"+f.name});
 }
 
 function genMacthTable_follower_abi_img(abi, countered)
 {
   var abiImg = $("<div></div").addClass("follower abi");
   if (abi)
-    abiImg.append($("<ins></ins>").css("background-image", "url('img/" + ABILITY[abi].img + ".jpg')").attr("title", ABILITY[abi].name));
+    abiImg.append($("<ins></ins>").css("background-image", "url('img/" + ABILITY[abi].img + ".jpg')").attr("title", "%" + ABILITY[abi].name));
 
   if (countered)
-    abiImg.append($("<del></del>").addClass("follower countered").attr("title", ABILITY[abi].name));
+    abiImg.append($("<del></del>").addClass("follower countered").attr("title", "%"+ABILITY[abi].name));
         
 
   return abiImg[0].outerHTML;
@@ -324,7 +336,7 @@ function genMacthTable_follower(f, iLevel, matchedFlag)
   
   var followerName = $("<div></div").addClass("follower name");
   followerName.html(genFollowerName(f)
-      + genText("("+f.iLevel+")", ((lowILV) ? "Brown" : ""), true)
+      + genText("("+f.iLevel+")", {color:((lowILV) ? "Brown" : ""), nowrap:true})
       + (f.active ? "" : "*"));
 
   follower.append(followerAbis);
@@ -345,7 +357,7 @@ function genMatchTable(matchData, iLevel)
 function genTime(hours, green)
 {
 
-  return genText(hours + "小時", (green ? "Lime" : ""));
+  return genText(hours + "小時", {color:(green ? "Lime" : "")});
 }
 
 // Follower Sorting Functions
@@ -388,6 +400,7 @@ function genFollowerList(dataArray)
 {
   FOLLOWERDB = [];
   traitStatistics = {};
+  followerTooltip = {};
   for (var i = 1; i < dataArray.length; ++i)
   {
     var str = dataArray[i].split(",");
@@ -412,7 +425,6 @@ function genFollowerList(dataArray)
 
     follower.inactive = follower.active ? "" :"☆" ;
     follower.nameColor = QUALITY[follower.quality];
-    follower.nameHTML = genFollowerName(follower);
     follower.raceName = (follower.id in RACE) ? RACE[follower.id].a : follower.race;
     follower.specName = SPEC[follower.spec].name;
     follower.ability1 = genImg(ABILITY[abi[0]]);
@@ -432,6 +444,16 @@ function genFollowerList(dataArray)
     addAbiTrait(TRAIT[tra[0]].name, follower);
     if (1 in tra) addAbiTrait(TRAIT[tra[1]].name, follower);
     if (2 in tra) addAbiTrait(TRAIT[tra[2]].name, follower);
+
+    // add Follower tooltip
+    var wrapper = $("<div></div>");
+    wrapper.append(genText(follower.name, {color:follower.nameColor}, true)
+        .css("font-size", "11pt").css("display", "block"));
+    wrapper.append(genText(follower.specName, 0, true)
+        .css("font-size", "10pt").css("display", "block").css("margin-bottom", "5px"));
+    $.each(abi, function() { wrapper.append(genImg(ABILITY[this], {inList:true}, true).css("width", "16px"))});
+    $.each(tra, function() { wrapper.append(genImg(TRAIT[this], {inList:true}, true).css("width", "16px"))});
+    followerTooltip[follower.name] = wrapper.html();
   }
 
   $(".statisticBarIcon").find("#count").text("");
@@ -480,13 +502,6 @@ function addAbiTrait(name, follower)
   if (!(name in traitStatistics))
     traitStatistics[name] = [];
   traitStatistics[name].push(follower);
-}
-
-function appenedFollower(item, key, follower)
-{
-  if (item[key])
-    item[key] += "<br>";
-  item[key] += genFollowerName(follower) + (follower.active ? "" : "*");
 }
 
 function calMatchDB(matchList)
@@ -540,11 +555,11 @@ function calMatchDB(matchList)
       curMatch.matchComp = genMatchTable(curMatch, curMission.iLevel);
       var unMatchHtml = "";
       for (var abi in curMatch.unMatchList)
-        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]], true);
+        unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]], {inList:true});
       curMatch.unMatch = unMatchHtml;
       var matchTraitHtml = "";
       for (var tar in curMatch.traitMatchList)
-        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]], true);
+        matchTraitHtml += genImg(TRAIT[curMatch.traitMatchList[tar]], {inList:true});
       curMatch.matchTrait = matchTraitHtml;
       curMatch.qTime = genTime(curMatch.questTime, (curMatch.traitMatchList.indexOf(221) >= 0));
     }
@@ -569,7 +584,7 @@ function genMatchList()
       else
         count = FOLLOWERDB[f].countQuest[curMission.type][i] * 100 / MATCHDB[curMission.type][i].length;
       if (count > 50)
-        FOLLOWERDB[f].countOutput += genText(count.toFixed(2)+"% ", "red");
+        FOLLOWERDB[f].countOutput += genText(count.toFixed(2)+"% ", {color:"red"});
       else
         FOLLOWERDB[f].countOutput += genText(count.toFixed(2) + "% ");
       average += count;
@@ -758,6 +773,13 @@ function AbiList()
 
 AbiList.prototype.addFollower = function(follower)
 {
+  function appenedFollower(item, key, follower)
+  {
+    if (item[key])
+      item[key] += "<br>";
+    item[key] += genFollowerName(follower) + (follower.active ? "" : "*");
+  }
+
   if (follower.abilities.length == 2)
     appenedFollower(this.getInstance(follower.abilities), "followers", follower);
   else // ==1
