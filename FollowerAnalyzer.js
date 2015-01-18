@@ -10,7 +10,7 @@ var nameStyle = "text-align: left;padding-left: 10px";
 var missionListC = new List('#missionListC',
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合", style:"padding-left:10px"},
-    {key: "unMatch", title:"未對應", style:nameStyle},
+    {key: "unMatch", title:"未反制", style:nameStyle},
     {key: "matchTrait", title:"特長", style:nameStyle},
     {key: "qTime", title:"任務時間", style:"width:64px!important"}
     ]);
@@ -41,7 +41,7 @@ var abilityListC = new List('#abilityListC',
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
     {key:"possible",title:"可期望名單", style:nameStyle},
-    {key:"needByMissions",title:"可滿足任務100%", style:nameStyle+";min-width:110px"},
+    {key:"needByMissions",title:"滿足六反制", style:nameStyle+";min-width:110px"},
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
 
@@ -486,7 +486,7 @@ function appenedFollower(item, key, follower)
 {
   if (item[key])
     item[key] += "<br>";
-  item[key] += genFollowerName(follower);
+  item[key] += genFollowerName(follower) + (follower.active ? "" : "*");
 }
 
 function calMatchDB(matchList)
@@ -500,16 +500,14 @@ function calMatchDB(matchList)
       FOLLOWERDB[f].countQuest[curMission.type][i] = 0;
     }
 
-    matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, 1.0);
+    var bound = 1, MATCH_MAX = 10;
+    matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
     if (matchList[i].length == 0)
-    {
-      var bound = 0.95, MATCH_MAX = 10;
       do
       {
-        matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
         bound -= 0.05;
+        matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
       }while (matchList[i].length < MATCH_MAX);
-    }
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
     // update ability set
