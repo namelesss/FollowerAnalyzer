@@ -459,9 +459,10 @@ function genFollowerList(dataArray)
   $(".statisticBarIcon").find("#count").text("");
   $(".statisticIcon").each(function () 
   { 
-    if (this.title in traitStatistics)
+    var title = this.title.slice(1);
+    if (title in traitStatistics)
     {
-      var count = traitStatistics[this.title].length;
+      var count = traitStatistics[title].length;
       $(this).text(count);
       var ele = $(this).parents(".statisticBarIcon").find("#count");
       ele.text(parseInt(ele.text() || 0) + count);
@@ -469,7 +470,7 @@ function genFollowerList(dataArray)
     else
     {
       $(this).text("");
-      traitStatistics[this.title] = [];
+      traitStatistics[title] = [];
     }
   });
   for (var i in traitStatistics)
