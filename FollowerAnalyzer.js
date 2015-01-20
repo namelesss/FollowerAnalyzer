@@ -612,15 +612,16 @@ function matchEncounter(threats, f)
   return matched;
 }
 
-function successRate(quest, needILV, followers, matchFlags, matchInfo)
+function successRate(quest, needILV, matchInfo)
 {
   var needNumFollowers = 3; // 3-man Raid Specific
   var base = quest.threats.length * 3 + needNumFollowers;
   var traitMatchList = [];
-  var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0;
+  var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0, numDancer = 0;
 
   var raceMatch = 0;
   var followerP = 0;
+  var followers = matchInfo.team;
   for (var f in followers)
   {
     // Follower Contribute
@@ -629,7 +630,7 @@ function successRate(quest, needILV, followers, matchFlags, matchInfo)
     if (ilvOption == "highest") calILV = 655;
     var olv = (calILV > needILV) ? 1 + Math.min(calILV - needILV, 15)/30 : 1;
     var llv = (calILV < needILV) ? 1 - Math.min(needILV - calILV, 30)/15 : 1;
-    var abiMatch = parseInt((matchFlags[f] + 1) / 2);
+    var abiMatch = parseInt((matchInfo.matchedFlag[f] + 1) / 2);
     followerP += 3 * abiMatch * llv + olv;
     // Normal Trait Match
     for (var t in followers[f].traits)
@@ -645,6 +646,11 @@ function successRate(quest, needILV, followers, matchFlags, matchInfo)
         numHighStamina++;
       else if (trait == 77) // Burst of Power
         numBurstPower++;
+      else if (trait == 232 && matchInfo.unMatchList.indexOf(6) >= 0) // Dancer
+      {
+        numDancer++;
+        traitMatchList.push(trait);
+      }
       else if (trait in RACE_MATCH)
         if (RACE_MATCH[trait] == followers[(f+1)%3].raceName 
             || RACE_MATCH[trait] == followers[(f+2)%3].raceName)
@@ -667,7 +673,8 @@ function successRate(quest, needILV, followers, matchFlags, matchInfo)
 
   matchInfo.traitMatchList = traitMatchList;
   matchInfo.questTime = qTime;
-  return (followerP + traitMatch + raceMatch * 0.5) / base;
+  
+  return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 0.5) / base);
 }
 
 var only100 = true;
@@ -697,21 +704,17 @@ function MatchMission(quest, iLevel, threshold)
         if (only100 && fData[c].level < 100) continue;
         matchFlags[2] = matchEncounter(encounter, fData[c]);
         
-        var matchInfo = {};
-        var unMatchList = []; 
+        var matchInfo = {team:[fData[a], fData[b], fData[c]], 
+          matchedFlag:matchFlags.slice(0),
+          unMatchList:[]};
           for (var i in encounter) 
             if (encounter[i].countered == 0) 
-              unMatchList.push(encounter[i].abi);
+              matchInfo.unMatchList.push(encounter[i].abi);
         var curTeam = [fData[a], fData[b], fData[c]];
-        var rate = successRate(quest, iLevel, curTeam, matchFlags, matchInfo);
+        var rate = successRate(quest, iLevel, matchInfo);
 
         if (rate >= threshold)
-          match.push({team:curTeam, 
-              matchedFlag:matchFlags.slice(0),
-              rate:rate, 
-              unMatchList:unMatchList, 
-              questTime:matchInfo.questTime,
-              traitMatchList:matchInfo.traitMatchList});
+          match.push(matchInfo);
 
         for (var i in encounter)
           if (fData[c].id == encounter[i].countered)
