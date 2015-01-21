@@ -760,6 +760,14 @@ function AbiList()
         followers:"", possible:"", needByMissions:"",spec:wrapper.html()});
     }
   }
+  // 10 + 10
+  list.push({abis:[10,10],abiComp:genImg(ABILITY[10])+"+"+genImg(ABILITY[10]),
+    followers:"", possible:"", needByMissions:"",
+    spec: $("<div></div>").append($("<div></div>")
+      .css("font-size", "20%")
+      .append($("<div></div>").addClass("spec").attr("id",SPEC[33].name).text(SPEC[33].name))
+      .append($("<div></div>").addClass("spec").attr("id",SPEC[34].name).text(SPEC[34].name))
+    ).html()});
   
   $("#abilityListC").on("click", ".spec", function()
   {
@@ -773,7 +781,7 @@ function AbiList()
 
   this.getInstance = function (abi)
   {
-    if (abi.constructor != Array || abi.length < 2 || abi[0] == abi[1]) return null;
+    if (abi.constructor != Array || abi.length < 2) return null;
     var abis = (abi[0] < abi[1]) ? abi: [abi[1], abi[0]];
     return list[abiLookup[abis[0] + "+" +abis[1]]];
   }
@@ -847,15 +855,15 @@ var MISSIONS = [
     ]},
   { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
       { type:38, threats:[6,2,8,7], time:23*60+53},
-      { type:0, threats:[2,1,10,3], time:23*60+53},
+      { type:47, threats:[2,1,10,3], time:23*60+53},
       { type:39, threats:[4,1,2,7,9], time:23*60+53},
-      { type:0, threats:[3,7,8,6], time:23*60+53},
+      { type:47, threats:[3,7,8,6], time:23*60+53},
       { type:42, threats:[8,4,3,6,8], time:23*60+53}
     ]},
   { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
       { type:36, threats:[4,9,8,2,3], time:23*60+53},
       { type:45, threats:[7,2,3,9,2,3], time:23*60+53},
-      { type:0, threats:[1,8,4,7,6,2], time:23*60+53},
+      { type:47, threats:[1,8,4,7,6,2], time:23*60+53},
       { type:49, threats:[8,6,3,9,2,3], time:23*60+53},
       { type:9, threats:[9,6,1,9,3,2], time:23*60+53},
       { type:4, threats:[7,3,1,2,10,6], time:23*60+53}
