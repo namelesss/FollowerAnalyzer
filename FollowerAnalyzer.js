@@ -979,7 +979,8 @@ var TRAIT = {
 72:{name:"圖騰師", img:"achievement_character_tauren_male"},
 42:{name:"虛空殺手", img:"achievement_boss_zuramat"},
 73:{name:"巫毒狂熱者", img:"achievement_character_troll_male"},
-9:{name:"荒地居民", img:"achievement_zone_tanaris_01"}
+9:{name:"荒地居民", img:"achievement_zone_tanaris_01"},
+47:{name:"城市居民", img:"achievement_zone_gilneas_02"}
 };
 var RACE = {
 225:{a:"獸人", h:"獸人"},
@@ -1283,4 +1284,3 @@ RACE_MATCH = {
 68:RACE[250].a,
 69:RACE[436].a
 };
-
