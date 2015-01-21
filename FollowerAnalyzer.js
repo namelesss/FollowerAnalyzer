@@ -10,9 +10,9 @@ var nameStyle = "text-align: left;padding-left: 10px";
 var missionListC = new List('#missionListC',
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合", style:"padding-left:10px"},
-    {key: "unMatch", title:"未反制", style:nameStyle},
+    {key: "unMatch", title:"未反制"},
     {key: "matchTrait", title:"特長", style:nameStyle},
-    {key: "qTime", title:"任務時間", style:"width:64px!important"}
+    {key: "qTime", title:"任務時間", style:"min-width:64px!important"}
     ]);
 
 var followerListTable = [
@@ -354,10 +354,14 @@ function genMatchTable(matchData, iLevel)
   return fTable[0].outerHTML;
 }
 
-function genTime(hours, green)
+function genTime(time, green)
 {
-
-  return genText(hours + "小時", {color:(green ? "Lime" : "")});
+  var h = parseInt(time / 60);
+  var m = parseInt(time % 60);
+  var timeStr = "";
+  if (h > 0) timeStr += h + "小時";
+  if (m > 0) timeStr += m + "分鐘";
+  return genText(timeStr, {color:(green ? "Lime" : "")});
 }
 
 // Follower Sorting Functions
@@ -661,7 +665,7 @@ function successRate(quest, needILV, matchInfo)
     }
   }
   var qTime = quest.time / Math.pow(2,numEpicMount);
-  if (qTime > 7)
+  if (qTime > 7*60)
     for (var i = 0; i < numHighStamina; ++i)
       traitMatchList.push(76);
   else
@@ -821,40 +825,40 @@ AbiList.prototype.reset = function()
 
 var MISSIONS = [
   { type:"天槌團隊任務", iLevel:645, rewards:"天槌寶箱", list:[
-      { type:48, threats:[10,8,2,6,9,1], time:8}, //trait 227,228?
-      { type:49, threats:[1,9,6,8,9,10], time:8},
-      { type:38, threats:[2,10,7,4,9,10], time:8},
-      { type:40, threats:[1,3,3,6,7,4], time:8}
+      { type:48, threats:[10,8,2,6,9,1], time:8*60},
+      { type:49, threats:[1,9,6,8,9,10], time:8*60},
+      { type:38, threats:[2,10,7,4,9,10], time:8*60},
+      { type:40, threats:[1,3,3,6,7,4], time:8*60}
     ]},
   { type:"黑石團隊任務", iLevel:645, rewards:"黑石寶箱", list:[
-      { type:7, threats:[2,6,1,3,3,10], time:8},
-      { type:4, threats:[1,2,6,3,9,10], time:8},
-      { type:45, threats:[4,7,6,7,4,8], time:8},
-      { type:41, threats:[6,3,10,1,9,7], time:8}
+      { type:7, threats:[2,6,1,3,3,10], time:8*60},
+      { type:4, threats:[1,2,6,3,9,10], time:8*60},
+      { type:45, threats:[4,7,6,7,4,8], time:8*60},
+      { type:41, threats:[6,3,10,1,9,7], time:8*60}
     ]},
   { type:"645紫裝任務", iLevel:630, rewards:"645裝備", list:[
-      { type:40, threats:[1,8,2,9], time:8}, // weapon
-      { type:4, threats:[8,10,4,8], time:8}, // sholder
-      { type:4, threats:[6,10,1,2], time:8}, // chest
-      { type:38, threats:[8,9,1,7], time:8}, // feet
-      { type:4, threats:[6,10,2,10], time:8}, // neck
-      { type:43, threats:[8,9,9,10], time:8}, // trinket
-      { type:39, threats:[6,3,1,10], time:8}, // waist
+      { type:40, threats:[1,8,2,9], time:8*60}, // weapon
+      { type:4, threats:[8,10,4,8], time:8*60}, // sholder
+      { type:4, threats:[6,10,1,2], time:8*60}, // chest
+      { type:38, threats:[8,9,1,7], time:8*60}, // feet
+      { type:4, threats:[6,10,2,10], time:8*60}, // neck
+      { type:43, threats:[8,9,9,10], time:8*60}, // trinket
+      { type:39, threats:[6,3,1,10], time:8*60}, // waist
     ]},
   { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
-      { type:38, threats:[6,2,8,7], time:24},
-      { type:0, threats:[2,1,10,3], time:24},
-      { type:39, threats:[4,1,2,7,9], time:24},
-      { type:0, threats:[3,7,8,6], time:24},
-      { type:42, threats:[8,4,3,6,8], time:24}
+      { type:38, threats:[6,2,8,7], time:23*60+53},
+      { type:0, threats:[2,1,10,3], time:23*60+53},
+      { type:39, threats:[4,1,2,7,9], time:23*60+53},
+      { type:0, threats:[3,7,8,6], time:23*60+53},
+      { type:42, threats:[8,4,3,6,8], time:23*60+53}
     ]},
   { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
-      { type:36, threats:[4,9,8,2,3], time:24},
-      { type:45, threats:[7,2,3,9,2,3], time:24},
-      { type:0, threats:[1,8,4,7,6,2], time:24},
-      { type:49, threats:[8,6,3,9,2,3], time:24},
-      { type:9, threats:[9,6,1,9,3,2], time:24},
-      { type:4, threats:[7,3,1,2,10,6], time:24}
+      { type:36, threats:[4,9,8,2,3], time:23*60+53},
+      { type:45, threats:[7,2,3,9,2,3], time:23*60+53},
+      { type:0, threats:[1,8,4,7,6,2], time:23*60+53},
+      { type:49, threats:[8,6,3,9,2,3], time:23*60+53},
+      { type:9, threats:[9,6,1,9,3,2], time:23*60+53},
+      { type:4, threats:[7,3,1,2,10,6], time:23*60+53}
     ]}
 ];
 
