@@ -761,13 +761,11 @@ function AbiList()
     }
   }
   // 10 + 10
+  var tmpDiv = $("<div></div>").css("font-size", "20%");
+  $.each([33, 34, 5, 7, 14], function () { tmpDiv.append($("<div></div>").addClass("spec")
+        .attr("id",SPEC[this].name).text(SPEC[this].name)); });
   list.push({abis:[10,10],abiComp:genImg(ABILITY[10])+"+"+genImg(ABILITY[10]),
-    followers:"", possible:"", needByMissions:"",
-    spec: $("<div></div>").append($("<div></div>")
-      .css("font-size", "20%")
-      .append($("<div></div>").addClass("spec").attr("id",SPEC[33].name).text(SPEC[33].name))
-      .append($("<div></div>").addClass("spec").attr("id",SPEC[34].name).text(SPEC[34].name))
-    ).html()});
+    followers:"", possible:"", needByMissions:"", spec: tmpDiv[0].outerHTML});
   
   $("#abilityListC").on("click", ".spec", function()
   {
