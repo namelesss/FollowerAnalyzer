@@ -801,7 +801,7 @@ AbiList.prototype.addFollower = function(follower)
     var that = this;
     var abi1 = follower.abilities[0];
     $.each(SPEC[follower.spec].counters, function (idx, abi2) {
-      if (abi1 != abi2) 
+      if (abi1 != abi2 || (abi1 == 10 && SPEC[follower.spec].counters.length == 4)) 
         appenedFollower(that.getInstance([abi1, abi2]), "possible", follower);
     });
   }
