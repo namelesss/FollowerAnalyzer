@@ -527,7 +527,7 @@ function calMatchDB(matchList)
       {
         bound -= 0.05;
         matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
-      }while (matchList[i].length < MATCH_MAX);
+      }while (matchList[i].length < MATCH_MAX && bound > 0);
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
     // update ability set
