@@ -46,9 +46,9 @@ var abilityListC = new List('#abilityListC',
     ]);
 
 var ABIDB;
+var traitStatistics;
 var FOLLOWERDB = [];
 var MATCHDB = {};
-var traitStatistics = {};
 var followerTooltip = {};
 var curMission;
 
@@ -77,7 +77,10 @@ function fetchData(dataString)
   if (result.length < 2) return;
   MATCHDB = {};
   ABIDB.reset();
+  traitStatistics = new AbiTraStat();
+  followerTooltip = {};
   genFollowerList(result);
+  genStatisticData();
 
 
   followerListC.createList(FOLLOWERDB);
@@ -164,8 +167,8 @@ $(function() { $( document ).tooltip({
   {
     var title = $(this).attr("title");
     var code = title.charAt(0);
-    if (code == '%' && (title = title.slice(1)) in traitStatistics)
-      return traitStatistics[title].tooltip;
+    if (code == '%' && (title = title.slice(1)) in traitStatistics.statistic)
+      return traitStatistics.get(title).tooltip;
     else if (code == '$' && (title = title.slice(1)) in followerTooltip)
       return followerTooltip[title];
     else
@@ -403,8 +406,6 @@ function sortFunc(a, b, ascending, list)
 function genFollowerList(dataArray)
 {
   FOLLOWERDB = [];
-  traitStatistics = {};
-  followerTooltip = {};
   for (var i = 1; i < dataArray.length; ++i)
   {
     var str = dataArray[i].split(",");
@@ -443,11 +444,7 @@ function genFollowerList(dataArray)
     ABIDB.addFollower(follower);
 
     // add to traitStatistics
-    addAbiTrait(ABILITY[abi[0]].name, follower);
-    if (1 in abi) addAbiTrait(ABILITY[abi[1]].name, follower);
-    addAbiTrait(TRAIT[tra[0]].name, follower);
-    if (1 in tra) addAbiTrait(TRAIT[tra[1]].name, follower);
-    if (2 in tra) addAbiTrait(TRAIT[tra[2]].name, follower);
+    traitStatistics.addFollower(follower);
 
     // add Follower tooltip
     var wrapper = $("<div></div>");
@@ -459,54 +456,21 @@ function genFollowerList(dataArray)
     $.each(tra, function() { wrapper.append(genImg(TRAIT[this], {inList:true}, true).css("width", "16px"))});
     followerTooltip[follower.name] = wrapper.html();
   }
+}
 
+function genStatisticData()
+{
+  // Race bar
   $(".statisticBarIcon").find("#count").text("");
   $(".statisticIcon").each(function () 
   { 
     var title = this.title.slice(1);
-    if (title in traitStatistics)
-    {
-      var count = traitStatistics[title].length;
-      $(this).text(count);
-      var ele = $(this).parents(".statisticBarIcon").find("#count");
-      ele.text(parseInt(ele.text() || 0) + count);
-    }
-    else
-    {
-      $(this).text("");
-      traitStatistics[title] = [];
-    }
+    var count = traitStatistics.get(title).length;
+    $(this).text(count || "");
+    var ele = $(this).parents(".statisticBarIcon").find("#count");
+    if (ele) ele.text(parseInt(ele.text() || 0) + count);
   });
-  for (var i in traitStatistics)
-  {
-    var wrapper = $("<div></div>");
-    wrapper.append($("<span></span>").css("color", "gold").text(i));
-    traitStatistics[i].sort(function (a,b) { return sortFunc(a, b, -1, ["active", "level", "iLevel", "quality"]); });
-    for (var t in traitStatistics[i])
-    {
-      var f = traitStatistics[i][t];
-      var level = (f.level == 100) ? f.iLevel : " "+f.level+" ";
-      wrapper.append(
-        $("<div></div>")
-          .css("font-size", "11pt")
-          .append($("<span></span>")
-            .css("color", f.nameColor)
-            .css("padding-left", "10px")
-            .text("["+level+"]"))
-          .append($("<span></span>")
-            .css("color", (f.active ? "" : "Tomato"))
-            .text(" " + f.name + (f.active ? "" : " *")))
-        );
-    }
-    traitStatistics[i].tooltip = wrapper.html();
-  }
-}
-
-function addAbiTrait(name, follower)
-{
-  if (!(name in traitStatistics))
-    traitStatistics[name] = [];
-  traitStatistics[name].push(follower);
+  traitStatistics.genTooltip();
 }
 
 function calMatchDB(matchList)
@@ -827,6 +791,49 @@ AbiList.prototype.reset = function()
 {
   for (var i in this.list)
     this.list[i].followers = this.list[i].possible = this.list[i].needByMissions = "";
+}
+
+// Object of Trait and Ability Statistic
+function AbiTraStat()
+{
+  var that = this;
+  this.statistic = {};
+  $.each(ABILITY, function () { that.statistic[this.name] = []; });
+  $.each(TRAIT, function () { that.statistic[this.name] = []; });
+
+  this.get = function(id) { return this.statistic[id] };
+}
+
+AbiTraStat.prototype.addFollower = function (f)
+{
+  var that = this;
+  $.each(f.abilities, function () { that.statistic[ABILITY[this].name].push(f); });
+  $.each(f.traits, function () { that.statistic[TRAIT[this].name].push(f); });
+}
+
+AbiTraStat.prototype.genTooltip = function ()
+{
+  $.each(this.statistic, function (key) {
+    var wrapper = $("<div></div>");
+    wrapper.append($("<span></span>").css("color", "gold").text(key));
+    this.sort(function (a,b) { return sortFunc(a, b, -1, ["active", "level", "iLevel", "quality"]); });
+    $.each(this, function () {
+      var f = this;
+      var level = (f.level == 100) ? f.iLevel : " "+f.level+" ";
+      wrapper.append(
+        $("<div></div>")
+          .css("font-size", "11pt")
+          .append($("<span></span>")
+            .css("color", f.nameColor)
+            .css("padding-left", "10px")
+            .text("["+level+"]"))
+          .append($("<span></span>")
+            .css("color", (f.active ? "" : "Tomato"))
+            .text(" " + f.name + (f.active ? "" : " *")))
+        );
+    });
+    this.tooltip = wrapper.html();
+  });
 }
 
 var MISSIONS = [
