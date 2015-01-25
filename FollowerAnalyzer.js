@@ -847,10 +847,10 @@ var MISSIONS = [
       { type:40, threats:[1,3,3,6,7,4], time:8*60}
     ]},
   { type:"黑石團隊任務", iLevel:645, rewards:"黑石寶箱", list:[
-      { type:7, threats:[2,6,1,3,3,10], time:8*60},
-      { type:4, threats:[1,2,6,3,9,10], time:8*60},
-      { type:45, threats:[4,7,6,7,4,8], time:8*60},
-      { type:41, threats:[6,3,10,1,9,7], time:8*60}
+      { type:7, threats:[2,6,1,3,3,10,8], time:8*60},
+      { type:4, threats:[1,2,6,3,9,10,8], time:8*60},
+      { type:45, threats:[4,7,6,7,4,8,3], time:8*60},
+      { type:41, threats:[6,3,10,1,2,9,7], time:8*60}
     ]},
   { type:"645紫裝任務", iLevel:630, rewards:"645裝備", list:[
       { type:40, threats:[1,8,2,9], time:8*60}, // weapon
