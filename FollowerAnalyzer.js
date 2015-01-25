@@ -448,10 +448,13 @@ function genFollowerList(dataArray)
 
     // add Follower tooltip
     var wrapper = $("<div></div>");
-    wrapper.append(genText(follower.name, {color:follower.nameColor}, true)
-        .css("font-size", "11pt").css("display", "block"));
-    wrapper.append(genText(follower.specName, 0, true)
-        .css("font-size", "10pt").css("display", "block").css("margin-bottom", "5px"));
+    wrapper.append($("<div></div>").css("display", "flex").css("font-size", "10pt")
+        .append(genText(follower.name, {color:follower.nameColor}, true).css("flex", "1").css("margin-right", "5px"))
+        .append(genText("(" + ((follower.level == 100) ? follower.iLevel : follower.level) + ")", 0, true))
+        ).append($("<div></div>").css("display", "flex").css("margin-bottom", "5px")
+          .css("font-size", "9pt").css("color", "#bbb")
+        .append(genText(follower.specName, 0, true).css("flex", "1").css("margin-right", "5px"))
+        .append(genText(follower.raceName, 0, true)));
     $.each(abi, function() { wrapper.append(genImg(ABILITY[this], {inList:true}, true).css("width", "16px"))});
     $.each(tra, function() { wrapper.append(genImg(TRAIT[this], {inList:true}, true).css("width", "16px"))});
     followerTooltip[follower.name] = wrapper.html();
