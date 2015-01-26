@@ -330,7 +330,7 @@ function genMacthTable_follower_abi_img(abi, countered)
 
 function genMacthTable_follower(f, iLevel, matchedFlag)
 {
-  var lowILV = f.iLevel < iLevel;  // strick to 645?
+  var lowILV = f.iLevel < iLevel;
   var follower = $("<div></div").addClass("follower");
 
   var followerAbis = $("<div></div").addClass("follower abis" + f.abilities.length);
@@ -846,7 +846,7 @@ var MISSIONS = [
       { type:38, threats:[2,10,7,4,9,10], time:8*60},
       { type:40, threats:[1,3,3,6,7,4], time:8*60}
     ]},
-  { type:"黑石團隊任務", iLevel:645, rewards:"黑石寶箱", list:[
+  { type:"黑石團隊任務", iLevel:660, rewards:"黑石寶箱", list:[
       { type:7, threats:[2,6,1,3,3,10,8], time:8*60},
       { type:4, threats:[1,2,6,3,9,10,8], time:8*60},
       { type:45, threats:[4,7,6,7,4,8,3], time:8*60},
