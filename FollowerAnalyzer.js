@@ -538,6 +538,32 @@ function calMatchDB(matchList)
   }
 }
 
+function traverseMatch(matchList, comp, i, least)
+{
+  for(var j = 0; j < matchList[i].length; ++j)
+  {
+    var localComp = comp.slice(0);
+    for (var f in matchList[i][j].team)
+    {
+      var flag = false;
+      $.each(localComp, function () { if (this == matchList[i][j].team[f].id) flag = true; });
+      if (!flag) localComp.push(matchList[i][j].team[f].id);
+    }
+    if (i == matchList.length - 1) // last encounter
+    {
+      if (least.length == 0 || localComp.length < least.length)
+      {
+        while (least.length > 0)
+          least.pop();
+        while (localComp.length > 0)
+          least.push(localComp.pop());
+      }
+    }
+    else
+      traverseMatch(matchList, localComp, i + 1, least);
+  }
+}
+
 function genMatchList()
 {
   if (!MATCHDB[curMission.type])
@@ -564,6 +590,11 @@ function genMatchList()
     FOLLOWERDB[f].average = average/4;
     FOLLOWERDB[f].countOutput = FOLLOWERDB[f].average.toFixed(2) + "%(" + FOLLOWERDB[f].countOutput + ")";
   }
+
+  // Get Least Team members
+  var least = [];
+  traverseMatch(MATCHDB[curMission.type], [], 0, least);
+  $.each(least, function() { var that=this; $.each(FOLLOWERDB, function(){if (this.id == that) console.info(this.name)});});
 }
 
 function matchEncounter(threats, f)
