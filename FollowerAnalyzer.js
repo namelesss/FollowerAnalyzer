@@ -542,21 +542,24 @@ function traverseMatch(matchList, comp, i, least)
 {
   for(var j = 0; j < matchList[i].length; ++j)
   {
-    var localComp = comp.slice(0);
-    for (var f in matchList[i][j].team)
+    var localComp = {count:comp.count};
+    localComp.list = comp.list.slice(0);
+    localComp.detail = comp.detail.slice(0);
+    localComp.detail.push(matchList[i][j].team);
+    $.each(matchList[i][j].team, function() 
     {
-      var flag = false;
-      $.each(localComp, function () { if (this == matchList[i][j].team[f].id) flag = true; });
-      if (!flag) localComp.push(matchList[i][j].team[f].id);
-    }
+      if (localComp.list.indexOf(this.name) < 0)
+      {
+        localComp.count++;
+        localComp.list.push(this.name);
+      }
+    });
     if (i == matchList.length - 1) // last encounter
     {
-      if (least.length == 0 || localComp.length < least.length)
+      if (localComp.count < least.count)
       {
-        while (least.length > 0)
-          least.pop();
-        while (localComp.length > 0)
-          least.push(localComp.pop());
+        least.comp = localComp;
+        least.count = localComp.count;
       }
     }
     else
@@ -592,9 +595,11 @@ function genMatchList()
   }
 
   // Get Least Team members
-  var least = [];
-  traverseMatch(MATCHDB[curMission.type], [], 0, least);
-  $.each(least, function() { var that=this; $.each(FOLLOWERDB, function(){if (this.id == that) console.info(this.name)});});
+  var least = {count:999};
+  traverseMatch(MATCHDB[curMission.type], {count:0,list:[],detail:[]}, 0, least);
+  //$.each(least.comp.list, function() { console.info(this); });
+  //console.info(least);
+  $.each(least.comp.detail, function() { $.each(this, function() {console.info(this.name)}) });
 }
 
 function matchEncounter(threats, f)
