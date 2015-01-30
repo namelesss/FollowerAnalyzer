@@ -159,48 +159,55 @@ $("#choose_file").click(function(e)
     loadFileEntry(theEntry);
   });
 });
-// $xxx = id
-// %xxx = trait
-$(function() { $( document ).tooltip({
-  track: true,
-  content: function () 
-  {
-    var title = $(this).attr("title");
-    var code = title.charAt(0);
-    if (code == '%' && (title = title.slice(1)) in traitStatistics.statistic)
-      return traitStatistics.get(title).tooltip;
-    else if (code == '$' && (title = title.slice(1)) in followerTooltip)
-      return followerTooltip[title];
-    else
-      return title;
-  }  
-}); });
-
-$('#open').click(function()
-{
-  $("#cover").show();
-  $("#input").val("").focus();
-});
-
-$("#close").click(function() { $("#cover").hide();});
-
-$("#from_string").click(function()
-{
-  $("#cover").hide();
-  fetchData($("#input").val());
-  $('#file_path').val("字串輸入");
-});
-
-$("#option").click(function() { $("#optionPanel").show(); });
-
-$("#optionPanel").mouseleave(function() { $("#optionPanel").hide(); });
 
 var ilvOption = "required";
-$("input[name=ilv]").change(function() 
-{
-  ilvOption = $("input[name=ilv]:checked").val();
-  MATCHDB = {};
-  selectMission(curMission.type);
+$(function() { 
+  // $xxx = id
+  // %xxx = trait
+  $( document ).tooltip({
+    track: true,
+    content: function () 
+    {
+      var title = $(this).attr("title");
+      var code = title.charAt(0);
+      if (code == '%' && (title = title.slice(1)) in traitStatistics.statistic)
+        return traitStatistics.get(title).tooltip;
+      else if (code == '$' && (title = title.slice(1)) in followerTooltip)
+        return followerTooltip[title];
+      else
+        return title;
+    }  
+  }); 
+
+  $('#open').click(function()
+  {
+    $("#cover").show();
+    $("#input").val("").focus();
+  });
+
+  $("#close").click(function() { $("#cover").hide();});
+
+  $("#from_string").click(function()
+  {
+    $("#cover").hide();
+    fetchData($("#input").val());
+    $('#file_path').val("字串輸入");
+  });
+
+  $("#option").click(function() { $("#optionPanel").show(); });
+
+  $("#optionPanel").mouseleave(function() { $("#optionPanel").hide(); });
+
+  $("input[name=ilv]").change(function() 
+  {
+    ilvOption = $("input[name=ilv]:checked").val();
+    MATCHDB = {};
+    selectMission(curMission.type);
+  });
+
+  $("#leastButton").click(function() { $("#leastTeam").toggle();});
+  $("#leastTeam").draggable({ containment: "parent" });
+  $("#leastClose").click(function() { $("#leastTeam").hide();});
 });
 
 function selectMission(type)
@@ -310,7 +317,7 @@ function genText(text, opt, jquery)
   return ((jquery) ? t : t[0].outerHTML);
 }
 
-function genFollowerName(f, specColor)
+function genFollowerName(f, specColor, jquery)
 {
   return genText(f.name, {color:f.nameColor, nowrap:true, title:"$"+f.name});
 }
@@ -328,22 +335,26 @@ function genMacthTable_follower_abi_img(abi, countered)
   return abiImg[0].outerHTML;
 }
 
-function genMacthTable_follower(f, iLevel, matchedFlag)
+function genFollower(f, iLevel)
 {
   var lowILV = f.iLevel < iLevel;
+  return followerName = $("<div></div").html(
+      genFollowerName(f)
+      + genText("("+f.iLevel+")", {color:((lowILV) ? "Brown" : ""), nowrap:true})
+      + (f.active ? "" : "*"));
+}
+
+function genMacthTable_follower(f, iLevel, matchedFlag)
+{
   var follower = $("<div></div").addClass("follower");
 
   var followerAbis = $("<div></div").addClass("follower abis" + f.abilities.length);
   for(var i = 0; i < f.abilities.length; ++i)
     followerAbis.append(genMacthTable_follower_abi_img(f.abilities[i], matchedFlag & Math.pow(2,i)));
   
-  var followerName = $("<div></div").addClass("follower name");
-  followerName.html(genFollowerName(f)
-      + genText("("+f.iLevel+")", {color:((lowILV) ? "Brown" : ""), nowrap:true})
-      + (f.active ? "" : "*"));
 
   follower.append(followerAbis);
-  follower.append(followerName);
+  follower.append(genFollower(f, iLevel).addClass("follower name"));
 
   return follower;
 }
@@ -554,16 +565,11 @@ function traverseMatch(matchList, comp, i, least)
         localComp.list.push(this.name);
       }
     });
-    if (i == matchList.length - 1) // last encounter
-    {
-      if (localComp.count < least.count)
-      {
+    if (i < matchList.length - 1) 
+      traverseMatch(matchList, localComp, i + 1, least); // recursion
+    else // last encounter, need more condition
+      if (localComp.count < least.comp.count)
         least.comp = localComp;
-        least.count = localComp.count;
-      }
-    }
-    else
-      traverseMatch(matchList, localComp, i + 1, least);
   }
 }
 
@@ -595,11 +601,18 @@ function genMatchList()
   }
 
   // Get Least Team members
-  var least = {count:999};
+  var least = {comp:{count:999}};
   traverseMatch(MATCHDB[curMission.type], {count:0,list:[],detail:[]}, 0, least);
-  //$.each(least.comp.list, function() { console.info(this); });
-  //console.info(least);
-  $.each(least.comp.detail, function() { $.each(this, function() {console.info(this.name)}) });
+  $("#leastTitle").css("color","white").text("最少人數："+least.comp.count);
+  $("#leastComp").empty().css("display","table");
+  for (var i in MATCHDB[curMission.type])
+  {
+    var wrapper = $("<div></div>").css("display", "table-row")
+      .append(genText("任務" + (parseInt(i) + 1), (MATCHDB[curMission.type][i][0].rate < 1)?{color:"Brown"}:0));
+    $.each(least.comp.detail[i], function() {wrapper.append(
+          genFollower(this, curMission.iLevel).css("display", "table-cell").css("padding", "2px"))});
+    $("#leastComp").append(wrapper);
+  }
 }
 
 function matchEncounter(threats, f)

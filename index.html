@@ -91,6 +91,21 @@
         height:400px;
         padding:10px;
       }
+      #leastTeam {
+        display:none;
+        position:absolute;
+        background:rgba(36,36,36,0.9);
+        min-width:200px;
+        min-height:100px;
+        top:50%;
+        left:50%;
+        color:#bbb;
+        border: 2px solid #999;
+        border-radius: 3px;
+        padding:10px;
+        font-size:12pt;
+        z-index:15;
+      }
       #message {
         position:absolute;
         border:1px solid #999;        
@@ -247,6 +262,7 @@
         <button id="choose_file">從檔案</button>
         <button id="refresh">重讀檔案</button>
         <input type="text" id="file_path" readonly>
+        <button id="leastButton">組合</button>
         <button id="option">選項</button>
       </div>
 
@@ -266,7 +282,13 @@
       <div id="followerListC" class="list-container" style="flex:1"></div>
       <div id="abilityListC" class="list-container" style="flex:1"></div>
     </div>
-
+    <div id="leastTeam">
+      <div class="menu">
+        <div id="leastTitle" style="line-height:29px;flex:1"></div>
+        <button id="leastClose">X</button>
+      </div>
+      <div id="leastComp"></div>
+    </div>
     <div id="cover" class="cover">
       <div id="popup">
         <div class="menu">
