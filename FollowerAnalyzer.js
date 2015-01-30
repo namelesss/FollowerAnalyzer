@@ -603,7 +603,8 @@ function genMatchList()
   // Get Least Team members
   var least = {comp:{count:999}};
   traverseMatch(MATCHDB[curMission.type], {count:0,list:[],detail:[]}, 0, least);
-  $("#leastTitle").css("color","white").text("最少人數："+least.comp.count);
+  $("#leastTitle").css("color","white")
+    .text("最少人數："+least.comp.count+"/"+(MATCHDB[curMission.type].length*3));
   $("#leastComp").empty().css("display","table");
   for (var i in MATCHDB[curMission.type])
   {
