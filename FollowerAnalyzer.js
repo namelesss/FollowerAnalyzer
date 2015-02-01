@@ -553,23 +553,27 @@ function traverseMatch(matchList, comp, i, least)
 {
   for(var j = 0; j < matchList[i].length; ++j)
   {
-    var localComp = {count:comp.count};
-    localComp.list = comp.list.slice(0);
-    localComp.detail = comp.detail.slice(0);
-    localComp.detail.push(matchList[i][j].team);
+    var localCount = 0;
+    comp.detail.push(matchList[i][j].team);
     $.each(matchList[i][j].team, function() 
     {
-      if (localComp.list.indexOf(this.name) < 0)
-      {
-        localComp.count++;
-        localComp.list.push(this.name);
-      }
+      if (comp.list.indexOf(this.name) < 0)
+        localCount++;
+      comp.list.push(this.name);
     });
+    comp.count += localCount;
     if (i < matchList.length - 1) 
-      traverseMatch(matchList, localComp, i + 1, least); // recursion
+      traverseMatch(matchList, comp, i + 1, least); // recursion
     else // last encounter, need more condition
-      if (localComp.count < least.comp.count)
-        least.comp = localComp;
+      if (comp.count < least.comp.count)
+      { //copy
+        least.comp.count = comp.count;
+        least.comp.detail = comp.detail.slice(0);
+       // console.info(localComp.count);
+      }
+    comp.detail.pop();
+    comp.list.pop();comp.list.pop();comp.list.pop();
+    comp.count -= localCount;
   }
 }
 
@@ -601,18 +605,28 @@ function genMatchList()
   }
 
   // Get Least Team members
-  var least = {comp:{count:999}};
-  traverseMatch(MATCHDB[curMission.type], {count:0,list:[],detail:[]}, 0, least);
-  $("#leastTitle").css("color","white")
-    .text("最少人數："+least.comp.count+"/"+(MATCHDB[curMission.type].length*3));
-  $("#leastComp").empty().css("display","table");
-  for (var i in MATCHDB[curMission.type])
+  var product = 1;
+  $.each(MATCHDB[curMission.type], function () { product *= this.length });
+  if (product < 1000000)
   {
-    var wrapper = $("<div></div>").css("display", "table-row")
-      .append(genText("任務" + (parseInt(i) + 1), (MATCHDB[curMission.type][i][0].rate < 1)?{color:"Brown"}:0));
-    $.each(least.comp.detail[i], function() {wrapper.append(
-          genFollower(this, curMission.iLevel).css("display", "table-cell").css("padding", "2px"))});
-    $("#leastComp").append(wrapper);
+    var least = {comp:{count:999}};
+    traverseMatch(MATCHDB[curMission.type], {count:0,list:[],detail:[]}, 0, least);
+    $("#leastTitle").css("color","white")
+      .text("最少人數："+least.comp.count+"/"+(MATCHDB[curMission.type].length*3));
+    $("#leastComp").empty().css("display","table");
+    for (var i in MATCHDB[curMission.type])
+    {
+      var wrapper = $("<div></div>").css("display", "table-row")
+        .append(genText("任務" + (parseInt(i) + 1), (MATCHDB[curMission.type][i][0].rate < 1)?{color:"Brown"}:0));
+      $.each(least.comp.detail[i], function() {wrapper.append(
+            genFollower(this, curMission.iLevel).css("display", "table-cell").css("padding", "2px"))});
+      $("#leastComp").append(wrapper);
+    }
+  }
+  else
+  {
+    $("#leastTitle").css("color","white").text("無法計算");
+    $("#leastComp").empty();
   }
 }
 
