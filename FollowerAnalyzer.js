@@ -498,14 +498,13 @@ function calMatchDB(matchList)
       FOLLOWERDB[f].countQuest[curMission.type][i] = 0;
     }
 
-    var bound = 1, MATCH_MAX = 10;
+    var bound = 1;
     matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
-    if (matchList[i].length == 0)
-      do
-      {
-        bound -= 0.05;
-        matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
-      }while (matchList[i].length < MATCH_MAX && bound > 0);
+    while (matchList[i].length == 0)
+    {
+      bound -= 0.05;
+      matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
+    }
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
     // update ability set
@@ -554,7 +553,7 @@ function traverseMatch(matchList, comp, i, least)
   for(var j = 0; j < matchList[i].length; ++j)
   {
     var localCount = 0;
-    comp.detail.push(matchList[i][j].team);
+    comp.detail.push(matchList[i][j]);
     $.each(matchList[i][j].team, function() 
     {
       if (comp.list.indexOf(this.name) < 0)
@@ -618,8 +617,9 @@ function genMatchList()
     {
       var wrapper = $("<div></div>").css("display", "table-row")
         .append(genText("任務" + (parseInt(i) + 1), (MATCHDB[curMission.type][i][0].rate < 1)?{color:"Brown"}:0));
-      $.each(least.comp.detail[i], function() {wrapper.append(
+      $.each(least.comp.detail[i].team, function() {wrapper.append(
             genFollower(this, curMission.iLevel).css("display", "table-cell").css("padding", "2px"))});
+      wrapper.append(least.comp.detail[i].successRate);
       $("#leastComp").append(wrapper);
     }
   }
