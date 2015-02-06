@@ -498,13 +498,14 @@ function calMatchDB(matchList)
       FOLLOWERDB[f].countQuest[curMission.type][i] = 0;
     }
 
-    var bound = 1;
+    var bound = 1, MATCH_MAX = 5;
     matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
-    while (matchList[i].length == 0)
-    {
-      bound -= 0.05;
-      matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
-    }
+    if (matchList[i].length == 0)
+      do
+      {
+        bound -= 0.05;
+        matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
+      }while (matchList[i].length < MATCH_MAX && bound > 0);
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
     // update ability set
