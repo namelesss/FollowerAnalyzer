@@ -162,7 +162,7 @@ $("#choose_file").click(function(e)
 
 var ilvOption = "required";
 $(function() { 
-  // $xxx = id
+  // $xxx = name
   // %xxx = trait
   $( document ).tooltip({
     track: true,
@@ -865,9 +865,11 @@ AbiList.prototype.reset = function()
 function AbiTraStat()
 {
   var that = this;
+  this.raceList = {};
   this.statistic = {};
-  $.each(ABILITY, function () { that.statistic[this.name] = []; });
-  $.each(TRAIT, function () { that.statistic[this.name] = []; });
+  $.each(ABILITY, function (key) { that.statistic[this.name] = []; that.statistic[this.name].abiID = key; });
+  $.each(TRAIT, function (key) { that.statistic[this.name] = []; that.statistic[this.name].matchedRace = RACE_MATCH[key]; });
+  $.each(RACE_MATCH, function() { that.raceList[this] = []; });
 
   this.get = function(id) { return this.statistic[id] };
 }
@@ -877,29 +879,53 @@ AbiTraStat.prototype.addFollower = function (f)
   var that = this;
   $.each(f.abilities, function () { that.statistic[ABILITY[this].name].push(f); });
   $.each(f.traits, function () { that.statistic[TRAIT[this].name].push(f); });
+  if (f.raceName in this.raceList)
+    this.raceList[f.raceName].push(f);
 }
 
 AbiTraStat.prototype.genTooltip = function ()
 {
+  var that = this;
+  var genList = function (f) 
+  {
+    var level = (f.level == 100) ? f.iLevel : " "+f.level+" ";
+    return $("<div></div>")
+      .css("font-size", "11pt")
+      .append($("<span></span>")
+          .css("color", f.nameColor)
+          .css("padding-left", "10px")
+          .text("["+level+"]"))
+      .append($("<span></span>")
+          .css("color", (f.active ? "" : "Tomato"))
+          .text(" " + f.name + (f.active ? "" : " *")));
+  };
+
   $.each(this.statistic, function (key) {
+    var abiId = this.abiID;
     var wrapper = $("<div></div>");
-    wrapper.append($("<span></span>").css("color", "gold").text(key));
+    wrapper.append($("<div></div>").css("color", "gold").text(key));
     this.sort(function (a,b) { return sortFunc(a, b, -1, ["active", "level", "iLevel", "quality"]); });
     $.each(this, function () {
-      var f = this;
-      var level = (f.level == 100) ? f.iLevel : " "+f.level+" ";
-      wrapper.append(
-        $("<div></div>")
-          .css("font-size", "11pt")
-          .append($("<span></span>")
-            .css("color", f.nameColor)
-            .css("padding-left", "10px")
-            .text("["+level+"]"))
-          .append($("<span></span>")
-            .css("color", (f.active ? "" : "Tomato"))
-            .text(" " + f.name + (f.active ? "" : " *")))
-        );
+      var followerHtml = genList(this);
+      if (abiId)
+      {
+        var abiIcons = $("<span></span>").css("float", "right");
+        if (this.abilities.length == 2)
+        {
+          var abi2 = (this.abilities[0] == abiId) ? this.abilities[1]: this.abilities[0];
+          abiIcons.append(genImg(ABILITY[abi2], {inList:true}, true).css("width", "16px"));          
+        }          
+        abiIcons.append(genImg(ABILITY[abiId], {inList:true}, true).css("width", "16px"));
+        followerHtml.append(abiIcons);
+      }
+      wrapper.append(followerHtml);
     });
+
+    if (this.matchedRace && that.raceList[this.matchedRace].length > 0)
+    {
+      wrapper.append($("<div></div>").css("color", "gold").text(that.raceList[this.matchedRace][0].raceName+":"));
+      $.each(that.raceList[this.matchedRace], function() { wrapper.append(genList(this)); });
+    }
     this.tooltip = wrapper.html();
   });
 }
