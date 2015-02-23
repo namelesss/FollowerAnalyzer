@@ -232,7 +232,7 @@ function selectMission(type)
         followerListC.updateList();
         abilityListC.updateList();
         $("#coverMsg").hide();
-      }, 0);
+      }, 10);
 
       return;
     }
