@@ -1029,6 +1029,7 @@ var TRAIT = {
 67:{name:"阿古斯同盟", img:"achievement_character_draenei_male"},
 227:{name:"釣手", img:"achievement_profession_fishing_northrendangler"},
 37:{name:"屠獸者", img:"achievement_boss_kingdred"},
+254:{name:"賞鳥客", img:"inv_tabard_a_76arakkoaoutcast"},
 55:{name:"鍛造", img:"trade_blacksmithing"},
 231:{name:"保鏢", img:"ability_hanzandfranz_chestbump"},
 69:{name:"飲酒狂", img:"achievement_character_pandaren_female"},
@@ -1050,7 +1051,7 @@ var TRAIT = {
 221:{name:"史詩作騎", img:"mountjournalportrait"},
 228:{name:"萬年青", img:"ability_druid_manatree"},
 80:{name:"額外訓練", img:"garrison_building_sparringarena"},
-29:{name:"Fast Learner", img:"ability_mage_studentofthemind"},
+29:{name:"快速上手", img:"ability_mage_studentofthemind"},
 41:{name:"怒靈殺手", img:"achievement_boss_ragnaros"},
 63:{name:"地精粉絲", img:"achievement_character_gnome_male"},
 40:{name:"古羅殺手", img:"achievement_boss_gruulthedragonkiller"},
@@ -1064,22 +1065,28 @@ var TRAIT = {
 60:{name:"製皮", img:"trade_leatherworking"},
 78:{name:"孤狼", img:"ability_shaman_freedomwolf"},
 48:{name:"沼澤行者", img:"achievement_zone_sholazar_03"},
+47:{name:"城市居民", img:"achievement_zone_gilneas_02"},
+253:{name:"機械狂", img:"achievement_boss_xt002deconstructor_01"},
+248:{name:"導師", img:"trade_archaeology_draenei_tome"},
 52:{name:"採礦", img:"trade_mining"},
 7:{name:"登山客", img:"achievement_zone_thousandneedles_01"},
 44:{name:"自然學家", img:"achievement_zone_silverpine_01"},
+252:{name:"巨魔好夥伴", img:"achievement_boss_highmaul_king"},
 38:{name:"巨魔殺手", img:"achievement_reputation_ogre"},
 4:{name:"獸人殺手", img:"achievement_boss_general_nazgrim"},
 49:{name:"曠野奔馳者", img:"achievement_zone_arathihighlands_01"},
 39:{name:"源生者殺手", img:"achievement_boss_yoggsaron_01"},
 79:{name:"拾荒者", img:"achievement_guildperk_bountifulbags"},
 62:{name:"剝皮", img:"inv_misc_pelt_wolf_01"},
+250:{name:"Speed of Light", img:"ability_priest_angelicfeather"},
 61:{name:"裁縫", img:"trade_tailoring"},
 43:{name:"鳥爪殺手", img:"inv_ravenlordpet"},
 72:{name:"圖騰師", img:"achievement_character_tauren_male"},
+256:{name:"寶藏獵人", img:"ability_racial_packhobgoblin"},
 42:{name:"虛空殺手", img:"achievement_boss_zuramat"},
 73:{name:"巫毒狂熱者", img:"achievement_character_troll_male"},
 9:{name:"荒地居民", img:"achievement_zone_tanaris_01"},
-47:{name:"城市居民", img:"achievement_zone_gilneas_02"}
+255:{name:"與獸同行", img:"inv_misc_head_tiger_01"}
 };
 var RACE = {
 225:{a:"獸人", h:"獸人"},
@@ -1236,6 +1243,7 @@ var RACE = {
 270:{a:"狼人", h:"不死族"},
 330:{a:"人類", h:"血精靈"},
 383:{a:"德萊尼", h:"巨魔"},
+466:{a:"獸人", h:"獸人"},
 397:{a:"矮人", h:"不死族"},
 88:{a:"地精", h:"獸人"},
 211:{a:"矮人", h:"哥不林"},
@@ -1245,6 +1253,7 @@ var RACE = {
 110:{a:"矮人", h:"牛頭人"},
 449:{a:"夜精靈", h:"熊貓人"},
 119:{a:"熊貓人", h:"熊貓人"},
+465:{a:"人類", h:"人類"},
 294:{a:"狼人", h:"巨魔"},
 403:{a:"矮人", h:"血精靈"},
 236:{a:"矮人", h:"牛頭人"},
@@ -1372,7 +1381,8 @@ var RACE = {
 433:{a:"熊貓人", h:"熊貓人"},
 240:{a:"人類", h:"獸人"},
 389:{a:"德萊尼", h:"哥不林"},
-168:{a:"埃匹希斯守衛", h:"埃匹希斯守衛"}
+168:{a:"埃匹希斯守衛", h:"埃匹希斯守衛"},
+467:{a:"熊貓人", h:"熊貓人"}
 };
 RACE_MATCH = {
 63:RACE[455].a,
@@ -1383,3 +1393,4 @@ RACE_MATCH = {
 68:RACE[250].a,
 69:RACE[436].a
 };
+
