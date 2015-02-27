@@ -977,7 +977,8 @@ var QUALITY = [
   "",
   "#1eff00",
   "#0070dd",
-  "#a335ee"
+  "#a335ee",
+  "#ff8000"
 ];
 // ---------Copy from id convert table------------
 var ABILITY = {
