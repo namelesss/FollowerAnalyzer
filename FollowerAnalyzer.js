@@ -30,7 +30,7 @@ var followerListTable = [
       titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "ability1", title: "技能1",  width:"50px"},
     {key: "ability2", title: "技能2",  width:"50px"},
-    {key: "ability3", title: "技能2",  width:"50px"},
+    {key: "ability3", title: "技能3",  width:"50px"},
     {key: "trait1", title: "特長1",  width:"50px"},
     {key: "trait2", title: "特長2",  width:"50px"},
     {key: "trait3", title: "特長3",  width:"50px"},
