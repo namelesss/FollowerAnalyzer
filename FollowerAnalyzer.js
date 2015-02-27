@@ -431,7 +431,7 @@ function genFollowerList(dataArray)
     follower.quality = parseInt(str[2]);
     follower.level = parseInt(str[3]);
     follower.iLevel = parseInt(str[4]);
-    follower.active = !(str[5] == "inactive");
+    follower.active = !(str[5] == "1");
     if (str[6]) abi.push(parseInt(str[6]));
     if (str[7]) abi.push(parseInt(str[7]));
     if (str[8]) abi.push(parseInt(str[8]));
