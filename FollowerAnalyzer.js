@@ -60,7 +60,8 @@ function tabClickCallback(tab)
   var h = ((curMission.list[idx].type != 0) ? (genImg(TRAIT[curMission.list[idx].type]) + " + ") : "");
   for (var e in curMission.list[idx].threats)
     h += genImg(ABILITY[curMission.list[idx].threats[e]], {inList:true});
-   $("#missionC").html(h);
+  $("#missionC").html(h);
+  $("#missionC").append($("<span></span>").css("float", "right").text(curMission.list[idx].rewards));
   missionListC.createList(MATCHDB[curMission.type][idx]);
 }
 
@@ -774,47 +775,6 @@ function doMatchMission(quest, threshold)
   doMatchMissionRec(0, 0, quest, threshold, match, tmpData);
   
   return match;
-/*
-  for (var a = 0; a < fData.length; ++a)
-  {
-    if (only100 && fData[a].level < 100) continue;
-    matchFlags[0] = matchEncounter(encounter, fData[a]);
-    
-    for (var b = a + 1; b < fData.length; ++b)
-    {
-      if (only100 && fData[b].level < 100) continue;
-      matchFlags[1] = matchEncounter(encounter, fData[b]);
-      
-      for (var c = b + 1; c < fData.length; ++c)
-      {
-        if (only100 && fData[c].level < 100) continue;
-        matchFlags[2] = matchEncounter(encounter, fData[c]);
-        
-        var matchInfo = {team:[fData[a], fData[b], fData[c]], 
-          matchedFlag:matchFlags.slice(0),
-          unMatchList:[]};
-          for (var i in encounter) 
-            if (encounter[i].countered == 0) 
-              matchInfo.unMatchList.push(encounter[i].abi);
-        var curTeam = [fData[a], fData[b], fData[c]];
-        var rate = successRate(quest, matchInfo);
-
-        if (rate >= threshold)
-          match.push(matchInfo);
-
-        for (var i in encounter)
-          if (fData[c].id == encounter[i].countered)
-            encounter[i].countered = 0;
-      }
-      for (var i in encounter)
-        if (fData[b].id == encounter[i].countered)
-          encounter[i].countered = 0;
-    }
-    for (var i in encounter)
-      if (fData[a].id == encounter[i].countered)
-        encounter[i].countered = 0;
-  }
-*/
 }
 
 // Object of AbiList
