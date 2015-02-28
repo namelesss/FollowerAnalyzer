@@ -33,9 +33,12 @@
   text-decoration: none;
 }
 
-.tabs li:hover{color:#fff;}
+.tabs li:hover
+{
+  color:#fff;
+}
 
-.tabs li.selected, .tabs li.selected:hover 
+.tabs li.selected 
 {
   text-decoration: none!important;
   cursor: default;
@@ -43,3 +46,17 @@
   color: #fff;
 }
 
+.tabs li.red
+{
+  color: Brown;
+}
+
+.tabs li.red:hover
+{
+  color:Red;
+}
+
+.tabs li.selected.red
+{
+  color:Red;
+}
