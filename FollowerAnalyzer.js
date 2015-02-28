@@ -1388,13 +1388,13 @@ var RACE = {
 466:{a:{name:"迦羅娜‧半血", race:"獸人"}, h:{name:"迦羅娜‧半血", race:"獸人"}},
 467:{a:{name:"風濤", race:"熊貓人"}, h:{name:"風濤", race:"熊貓人"}}
 };
-RACE_MATCH = {
-63:RACE[455].a,
-64:RACE[177].a,
-65:RACE[382].a,
-66:RACE[279].a,
-67:RACE[459].a,
-68:RACE[250].a,
-69:RACE[436].a
+var RACE_MATCH = {
+63:RACE[455].a.race,
+64:RACE[177].a.race,
+65:RACE[382].a.race,
+66:RACE[279].a.race,
+67:RACE[459].a.race,
+68:RACE[250].a.race,
+69:RACE[436].a.race
 };
 
