@@ -336,16 +336,16 @@ function genMacthTable_follower_abi_img(abi, countered)
   return abiImg[0].outerHTML;
 }
 
-function genFollower(f, iLevel)
+function genFollower(f, qILV)
 {
-  var lowILV = f.iLevel < iLevel;
+  var lowILV = f.iLevel < qILV;
   return followerName = $("<div></div").html(
       genFollowerName(f)
       + genText("("+f.iLevel+")", {color:((lowILV) ? "Brown" : ""), nowrap:true})
       + (f.active ? "" : "*"));
 }
 
-function genMacthTable_follower(f, iLevel, matchedFlag)
+function genMacthTable_follower(f, qILV, matchedFlag)
 {
   var follower = $("<div></div").addClass("follower");
 
@@ -355,16 +355,16 @@ function genMacthTable_follower(f, iLevel, matchedFlag)
   
 
   follower.append(followerAbis);
-  follower.append(genFollower(f, iLevel).addClass("follower name"));
+  follower.append(genFollower(f, qILV).addClass("follower name"));
 
   return follower;
 }
 
-function genMatchTable(matchData, iLevel)
+function genMatchTable(matchData)
 {
   var fTable = $("<div></div").addClass("followers");
   for (var i = 0; i < matchData.team.length; ++i)
-    fTable.append(genMacthTable_follower(matchData.team[i], iLevel, matchData.matchedFlag[i]));
+    fTable.append(genMacthTable_follower(matchData.team[i], matchData.qILV, matchData.matchedFlag[i]));
 
   return fTable[0].outerHTML;
 }
@@ -502,12 +502,12 @@ function calMatchDB(matchList)
     }
 
     var bound = 1, MATCH_MAX = 5;
-    matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
+    matchList[i] = MatchMission(curMission.list[i], bound);
     if (matchList[i].length == 0)
       do
       {
         bound -= 0.05;
-        matchList[i] = MatchMission(curMission.list[i], curMission.iLevel, bound);
+        matchList[i] = MatchMission(curMission.list[i], bound);
       }while (matchList[i].length < MATCH_MAX && bound > 0);
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
@@ -538,7 +538,7 @@ function calMatchDB(matchList)
       curMatch.team[2].countQuest[curMission.type][i]++;
 
       curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
-      curMatch.matchComp = genMatchTable(curMatch, curMission.iLevel);
+      curMatch.matchComp = genMatchTable(curMatch);
       var unMatchHtml = "";
       for (var abi in curMatch.unMatchList)
         unMatchHtml += genImg(ABILITY[curMatch.unMatchList[abi]], {inList:true});
@@ -651,9 +651,10 @@ function matchEncounter(threats, f)
   return matched;
 }
 
-function successRate(quest, needILV, matchInfo)
+function successRate(quest, matchInfo)
 {
-  var needNumFollowers = 3; // 3-man Raid Specific
+  var needNumFollowers = quest.numFollowers;
+  var needILV = quest.iLevel;
   var base = quest.threats.length * 3 + needNumFollowers;
   var traitMatchList = [];
   var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0, numDancer = 0;
@@ -712,12 +713,13 @@ function successRate(quest, needILV, matchInfo)
 
   matchInfo.traitMatchList = traitMatchList;
   matchInfo.questTime = qTime;
+  matchInfo.qILV = needILV;
   
   return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 0.5) / base);
 }
 
 var only100 = true;
-function MatchMission(quest, iLevel, threshold)
+function MatchMission(quest, threshold)
 {
   var match = [];
   var fData = FOLLOWERDB;
@@ -750,7 +752,7 @@ function MatchMission(quest, iLevel, threshold)
             if (encounter[i].countered == 0) 
               matchInfo.unMatchList.push(encounter[i].abi);
         var curTeam = [fData[a], fData[b], fData[c]];
-        var rate = successRate(quest, iLevel, matchInfo);
+        var rate = successRate(quest, matchInfo);
 
         if (rate >= threshold)
           match.push(matchInfo);
@@ -934,41 +936,41 @@ AbiTraStat.prototype.genTooltip = function ()
 }
 
 var MISSIONS = [
-  { type:"天槌團隊任務", iLevel:645, rewards:"天槌寶箱", list:[
-      { type:48, threats:[10,8,2,6,9,1], time:8*60},
-      { type:49, threats:[1,9,6,8,9,10], time:8*60},
-      { type:38, threats:[2,10,7,4,9,10], time:8*60},
-      { type:40, threats:[1,3,3,6,7,4], time:8*60}
+  { type:"天槌團隊任務", list:[
+      { type:48, threats:[10,8,2,6,9,1], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
+      { type:49, threats:[1,9,6,8,9,10], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
+      { type:38, threats:[2,10,7,4,9,10], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
+      { type:40, threats:[1,3,3,6,7,4], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3}
     ]},
-  { type:"黑石團隊任務", iLevel:660, rewards:"黑石寶箱", list:[
-      { type:7, threats:[2,6,1,3,3,10,8], time:8*60},
-      { type:4, threats:[1,2,6,3,9,10,8], time:8*60},
-      { type:45, threats:[4,7,6,7,4,8,3], time:8*60},
-      { type:41, threats:[6,3,10,1,2,9,7], time:8*60}
+  { type:"黑石團隊任務", list:[
+      { type:7, threats:[2,6,1,3,3,10,8], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3},
+      { type:4, threats:[1,2,6,3,9,10,8], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3},
+      { type:45, threats:[4,7,6,7,4,8,3], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3},
+      { type:41, threats:[6,3,10,1,2,9,7], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3}
     ]},
-  { type:"645紫裝任務", iLevel:630, rewards:"645裝備", list:[
-      { type:40, threats:[1,8,2,9], time:8*60}, // weapon
-      { type:4, threats:[8,10,4,8], time:8*60}, // sholder
-      { type:4, threats:[6,10,1,2], time:8*60}, // chest
-      { type:38, threats:[8,9,1,7], time:8*60}, // feet
-      { type:4, threats:[6,10,2,10], time:8*60}, // neck
-      { type:43, threats:[8,9,9,10], time:8*60}, // trinket
-      { type:39, threats:[6,3,1,10], time:8*60}, // waist
+  { type:"645紫裝任務", list:[
+      { type:40, threats:[1,8,2,9], time:8*60, iLevel:630, rewards:"645武器", numFollowers:3},
+      { type:4, threats:[8,10,4,8], time:8*60, iLevel:630, rewards:"645肩", numFollowers:3},
+      { type:4, threats:[6,10,1,2], time:8*60, iLevel:630, rewards:"645胸", numFollowers:3},
+      { type:38, threats:[8,9,1,7], time:8*60, iLevel:630, rewards:"645腳", numFollowers:3},
+      { type:4, threats:[6,10,2,10], time:8*60, iLevel:630, rewards:"645項鍊", numFollowers:3},
+      { type:43, threats:[8,9,9,10], time:8*60, iLevel:630, rewards:"645飾品", numFollowers:3},
+      { type:39, threats:[6,3,1,10], time:8*60, iLevel:630, rewards:"645手腕", numFollowers:3},
     ]},
-  { type:"橘戒一階石頭", iLevel:645, rewards:"阿伯加托之石", list:[
-      { type:38, threats:[6,2,8,7], time:23*60+53},
-      { type:47, threats:[2,1,10,3], time:23*60+53},
-      { type:39, threats:[4,1,2,7,9], time:23*60+53},
-      { type:47, threats:[3,7,8,6], time:23*60+53},
-      { type:42, threats:[8,4,3,6,8], time:23*60+53}
+  { type:"橘戒一階石頭", list:[
+      { type:38, threats:[6,2,8,7], time:23*60+53, iLevel:645, rewards:"阿伯加托之石", numFollowers:3},
+      { type:47, threats:[2,1,10,3], time:23*60+53, iLevel:645, rewards:"阿伯加托之石", numFollowers:3},
+      { type:39, threats:[4,1,2,7,9], time:23*60+53, iLevel:645, rewards:"阿伯加托之石", numFollowers:3},
+      { type:47, threats:[3,7,8,6], time:23*60+53, iLevel:645, rewards:"阿伯加托之石", numFollowers:3},
+      { type:42, threats:[8,4,3,6,8], time:23*60+53, iLevel:645, rewards:"阿伯加托之石", numFollowers:3}
     ]},
-  { type:"橘戒二階符文", iLevel:645, rewards:"元素符文", list:[
-      { type:36, threats:[4,9,8,2,3], time:23*60+53},
-      { type:45, threats:[7,2,3,9,2,3], time:23*60+53},
-      { type:47, threats:[1,8,4,7,6,2], time:23*60+53},
-      { type:49, threats:[8,6,3,9,2,3], time:23*60+53},
-      { type:9, threats:[9,6,1,9,3,2], time:23*60+53},
-      { type:4, threats:[7,3,1,2,10,6], time:23*60+53}
+  { type:"橘戒二階符文", list:[
+      { type:36, threats:[4,9,8,2,3], time:23*60+53, iLevel:645, rewards:"元素符文", numFollowers:3},
+      { type:45, threats:[7,2,3,9,2,3], time:23*60+53, iLevel:645, rewards:"元素符文", numFollowers:3},
+      { type:47, threats:[1,8,4,7,6,2], time:23*60+53, iLevel:645, rewards:"元素符文", numFollowers:3},
+      { type:49, threats:[8,6,3,9,2,3], time:23*60+53, iLevel:645, rewards:"元素符文", numFollowers:3},
+      { type:9, threats:[9,6,1,9,3,2], time:23*60+53, iLevel:645, rewards:"元素符文", numFollowers:3},
+      { type:4, threats:[7,3,1,2,10,6], time:23*60+53, iLevel:645, rewards:"元素符文", numFollowers:3}
     ]}
 ];
 
