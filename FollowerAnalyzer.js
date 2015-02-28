@@ -1,5 +1,5 @@
-var menuC = new Tab($('#menuC').get(0), menuClickCallback);
-var tabC = new Tab($('#tabC').get(0), tabClickCallback);
+var menuC = new Tab('#menuC', menuClickCallback);
+var tabC = new Tab('#tabC', tabClickCallback);
 var mainTabs = {
   followerMenu: {name:"追隨者", selector:"#followerListC"},
   missionMenu: {name:"任務", selector:"#mission-wrapper"}, 
@@ -10,8 +10,8 @@ var nameStyle = "text-align: left;padding-left: 10px";
 var missionListC = new List('#missionListC',
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合", style:"padding-left:10px"},
-    {key: "unMatch", title:"未反制"},
-    {key: "matchTrait", title:"特長", style:nameStyle},
+    {key: "unMatch", title:"未反制", style:nameStyle + "min-width:30px!important"},
+    {key: "matchTrait", title:"特長", style:nameStyle + "min-width:30px!important"},
     {key: "qTime", title:"任務時間", style:"min-width:64px!important"}
     ]);
 
@@ -226,7 +226,11 @@ function selectMission(type)
 
         var tabs = {};
         for (var j = 0; j < m.list.length; ++j)
+        {
           tabs[j] = {name:("任務"+(j+1))};
+          if (MATCHDB[curMission.type][j].length < 0 || MATCHDB[type][j][0].rate < 1)
+            tabs[j].red = true;
+        }
         tabC.createTab(tabs);
         if (sortTitleIdx >= 0)
           FOLLOWERDB.sort(function(a, b) { return sortFunc(a, b, sortFlag, followerListTable[sortTitleIdx].sortSeq); });
@@ -502,12 +506,12 @@ function calMatchDB(matchList)
     }
 
     var bound = 1, MATCH_MAX = 5;
-    matchList[i] = MatchMission(curMission.list[i], bound);
+    matchList[i] = doMatchMission(curMission.list[i], bound);
     if (matchList[i].length == 0)
       do
       {
         bound -= 0.05;
-        matchList[i] = MatchMission(curMission.list[i], bound);
+        matchList[i] = doMatchMission(curMission.list[i], bound);
       }while (matchList[i].length < MATCH_MAX && bound > 0);
     // sort
     matchList[i].sort(function(a, b) { return b.rate - a.rate; });
@@ -533,9 +537,7 @@ function calMatchDB(matchList)
     {
       var curMatch = matchList[i][j];
 
-      curMatch.team[0].countQuest[curMission.type][i]++;
-      curMatch.team[1].countQuest[curMission.type][i]++;
-      curMatch.team[2].countQuest[curMission.type][i]++;
+      $.each(curMatch.team, function() { this.countQuest[curMission.type][i]++});
 
       curMatch.successRate = (curMatch.rate * 100).toFixed(2)  + "%";
       curMatch.matchComp = genMatchTable(curMatch);
@@ -621,8 +623,15 @@ function genMatchList()
     {
       var wrapper = $("<div></div>").css("display", "table-row")
         .append(genText("任務" + (parseInt(i) + 1), (MATCHDB[curMission.type][i][0].rate < 1)?{color:"Brown"}:0));
-      $.each(least.comp.detail[i].team, function() {wrapper.append(
-            genFollower(this, curMission.iLevel).css("display", "table-cell").css("padding", "2px"))});
+      for (var x = 0; x < 4; ++x) // Restrict 4 max followers
+      {
+        if (x <least.comp.detail[i].team.length)
+          wrapper.append(
+            genFollower(least.comp.detail[i].team[x], curMission.iLevel)
+            .css("display", "table-cell").css("padding", "2px"));
+        else
+          wrapper.append($("<div></div>").css("display", "table-cell"));
+      }
       wrapper.append(least.comp.detail[i].successRate);
       $("#leastComp").append(wrapper);
     }
@@ -634,27 +643,11 @@ function genMatchList()
   }
 }
 
-function matchEncounter(threats, f)
-{
-  var matched = 0;
-  for (var i in f.abilities)
-  {
-    var abi = f.abilities[i];
-    for (var j in threats)
-      if (threats[j].abi == abi && threats[j].countered == 0)
-      {
-        threats[j].countered = f.id;
-        matched |= (1 << i); // bit1:abi[0] bit2:abi[1]
-        break;
-      }
-  }
-  return matched;
-}
-
 function successRate(quest, matchInfo)
 {
   var needNumFollowers = quest.numFollowers;
   var needILV = quest.iLevel;
+  var numF = quest.numFollowers;
   var base = quest.threats.length * 3 + needNumFollowers;
   var traitMatchList = [];
   var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0, numDancer = 0;
@@ -692,12 +685,13 @@ function successRate(quest, matchInfo)
         traitMatchList.push(trait);
       }
       else if (trait in RACE_MATCH)
-        if (RACE_MATCH[trait] == followers[(f+1)%3].raceName 
-            || RACE_MATCH[trait] == followers[(f+2)%3].raceName)
-        {
-          raceMatch++;
-          traitMatchList.push(trait);
-        }
+        for (var i = 1; i < numF; ++i)
+          if (RACE_MATCH[trait] == followers[(f+i)%numF].raceName)
+          {
+            raceMatch++;
+            traitMatchList.push(trait);
+            break;
+          }
     }
   }
   var qTime = quest.time / Math.pow(2,numEpicMount);
@@ -718,18 +712,69 @@ function successRate(quest, matchInfo)
   return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 0.5) / base);
 }
 
+function matchEncounter(threats, f)
+{
+  var matched = 0;
+  for (var i in f.abilities)
+  {
+    var abi = f.abilities[i];
+    for (var j in threats)
+      if (threats[j].abi == abi && threats[j].countered == 0)
+      {
+        threats[j].countered = f.id;
+        matched |= (1 << i); // bit1:abi[0] bit2:abi[1]
+        break;
+      }
+  }
+  return matched;
+}
+
 var only100 = true;
-function MatchMission(quest, threshold)
+function doMatchMissionRec(idx, start, quest, threshold, match, tmpData)
+{
+  for (var me = start; me < FOLLOWERDB.length; ++me)
+  {
+    if (only100 && FOLLOWERDB[me].level < 100) continue;
+    tmpData.matchFlags[idx] = matchEncounter(tmpData.encounter, FOLLOWERDB[me]);
+    tmpData.team.push(FOLLOWERDB[me]);
+
+    if (idx < quest.numFollowers - 1)
+      doMatchMissionRec(idx + 1, me + 1, quest, threshold, match, tmpData);
+    else
+    {        
+      var matchInfo = {team:tmpData.team.slice(0), 
+        matchedFlag:tmpData.matchFlags.slice(0),
+        unMatchList:[]};
+      for (var i in tmpData.encounter) 
+        if (tmpData.encounter[i].countered == 0) 
+          matchInfo.unMatchList.push(tmpData.encounter[i].abi);
+      var rate = successRate(quest, matchInfo);
+
+      if (rate >= threshold)
+        match.push(matchInfo);
+    }
+
+    tmpData.team.pop();
+    for (var i in tmpData.encounter)
+      if (FOLLOWERDB[me].id == tmpData.encounter[i].countered)
+        tmpData.encounter[i].countered = 0;
+  }
+}
+
+function doMatchMission(quest, threshold)
 {
   var match = [];
-  var fData = FOLLOWERDB;
-  var encounter = [];
-  var matchFlags = [];
+  var tmpData = { team:[], encounter:[], matchFlags:[] };
+
   for (var i in quest.threats)
   {
-    encounter.push({abi:quest.threats[i], countered:0}); // countered by follower's id, 0 if not countered
+    tmpData.encounter.push({abi:quest.threats[i], countered:0}); // countered by follower's id, 0 if not countered
   }
 
+  doMatchMissionRec(0, 0, quest, threshold, match, tmpData);
+  
+  return match;
+/*
   for (var a = 0; a < fData.length; ++a)
   {
     if (only100 && fData[a].level < 100) continue;
@@ -769,7 +814,7 @@ function MatchMission(quest, threshold)
       if (fData[a].id == encounter[i].countered)
         encounter[i].countered = 0;
   }
-  return match;
+*/
 }
 
 // Object of AbiList
@@ -936,17 +981,36 @@ AbiTraStat.prototype.genTooltip = function ()
 }
 
 var MISSIONS = [
-  { type:"天槌團隊任務", list:[
-      { type:48, threats:[10,8,2,6,9,1], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
-      { type:49, threats:[1,9,6,8,9,10], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
-      { type:38, threats:[2,10,7,4,9,10], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
-      { type:40, threats:[1,3,3,6,7,4], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3}
-    ]},
   { type:"黑石團隊任務", list:[
       { type:7, threats:[2,6,1,3,3,10,8], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3},
       { type:4, threats:[1,2,6,3,9,10,8], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3},
       { type:45, threats:[4,7,6,7,4,8,3], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3},
       { type:41, threats:[6,3,10,1,2,9,7], time:8*60, iLevel:660, rewards:"黑石寶箱", numFollowers:3}
+    ]},
+  { type:"6.1新任務(675)", list:[
+      { type:36, threats:[2,2,8,10], time:10*60, iLevel:675, rewards:"600頂尖水晶", numFollowers:2},
+      { type:44, threats:[4,2,8,10], time:10*60, iLevel:675, rewards:"150g", numFollowers:2},
+      { type:4, threats:[1,2,3,6,10], time:6*60, iLevel:675, rewards:"訓練書箱", numFollowers:2},
+      { type:39, threats:[7,7,1,10], time:8*60, iLevel:675, rewards:"30原始之魂", numFollowers:2},
+      { type:9, threats:[9,7,8,9], time:8*60, iLevel:675, rewards:"600頂尖水晶", numFollowers:2},
+      { type:45, threats:[2,7,3,6], time:10*60, iLevel:675, rewards:"30原始之魂", numFollowers:2},
+      { type:7, threats:[10,1,2,6], time:10*60, iLevel:675, rewards:"150g", numFollowers:2}
+    ]},
+  { type:"6.1新任務(660)", list:[
+      { type:9, threats:[8,4,2,3], time:8*60, iLevel:660, rewards:"400頂尖水晶", numFollowers:2},
+      { type:41, threats:[7,3,8,6], time:8*60, iLevel:660, rewards:"20原始之魂", numFollowers:2},
+      { type:8, threats:[3,6,4,8], time:8*60, iLevel:660, rewards:"400頂尖水晶", numFollowers:2},
+      { type:36, threats:[9,2,8,10], time:8*60, iLevel:660, rewards:"400頂尖水晶", numFollowers:2},
+      { type:37, threats:[7,1,2,10], time:8*60, iLevel:660, rewards:"20原始之魂", numFollowers:2},
+      { type:46, threats:[7,1,9,2], time:8*60, iLevel:660, rewards:"20原始之魂", numFollowers:2},
+      { type:41, threats:[4,6,8,6], time:8*60, iLevel:660, rewards:"20原始之魂", numFollowers:2},
+      { type:44, threats:[9,2,9,4], time:8*60, iLevel:660, rewards:"400頂尖水晶", numFollowers:2}
+    ]},
+  { type:"天槌團隊任務", list:[
+      { type:48, threats:[10,8,2,6,9,1], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
+      { type:49, threats:[1,9,6,8,9,10], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
+      { type:38, threats:[2,10,7,4,9,10], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3},
+      { type:40, threats:[1,3,3,6,7,4], time:8*60, iLevel:645, rewards:"天槌寶箱", numFollowers:3}
     ]},
   { type:"645紫裝任務", list:[
       { type:40, threats:[1,8,2,9], time:8*60, iLevel:630, rewards:"645武器", numFollowers:3},
