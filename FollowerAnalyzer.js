@@ -656,7 +656,7 @@ function successRate(quest, matchInfo)
   var raceMatch = 0;
   var followerP = 0;
   var followers = matchInfo.team;
-  for (var f in followers)
+  for (var f = 0; f < followers.length; ++f)
   {
     // Follower Contribute
     var calILV = needILV;
