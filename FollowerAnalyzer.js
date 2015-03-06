@@ -3,11 +3,12 @@ var tabC = new Tab('#tabC', tabClickCallback);
 var mainTabs = {
   followerMenu: {name:"追隨者", selector:"#followerListC"},
   missionMenu: {name:"任務", selector:"#mission-wrapper"}, 
-  abilityMenu:{name:"技能組", selector:"#abilityListC"}
+  abilityMenu:{name:"技能組", selector:"#abilityListC"},
+  raceMenu:{name:"親合", selector:"#raceC"}
 };
 
 var nameStyle = "text-align: left;padding-left: 10px";
-var missionListC = new List('#missionListC',
+var missionListC = new List($('#missionListC'),
     [{key: "successRate", title:"成功率", style:"width:64px!important"},
     {key: "matchComp", title:"配隊組合", style:"padding-left:10px"},
     {key: "unMatch", title:"未反制", style:nameStyle + "min-width:30px!important"},
@@ -37,8 +38,8 @@ var followerListTable = [
     {key: "countOutput", title: "出場率", style:nameStyle+";white-space: nowrap;overflow:hidden",
       titleClicked:sortFDB, sortSeq:["average", "id"]}
     ];
-var followerListC = new List('#followerListC', followerListTable);
-var abilityListC = new List('#abilityListC',
+var followerListC = new List($('#followerListC'), followerListTable);
+var abilityListC = new List($('#abilityListC'),
     [{key: "abiComp", title:"技能組", style:"width:80px"},
     {key: "followers", title:"追隨者", style:nameStyle},
     {key:"possible",title:"可期望名單", style:nameStyle},
@@ -46,8 +47,22 @@ var abilityListC = new List('#abilityListC',
     {key:"spec",title:"可能職業", style:nameStyle}
     ]);
 
+var RaceMatchSubTable = [
+    {key: "nameInactive", title:"名稱", style:nameStyle},
+    {key: "raceName", title: "種族", style:nameStyle}, 
+    {key: "trait1", title: "",  style:"max-width:50px"},
+    {key: "trait2", title: "",  style:"max-width:50px"},
+    {key: "trait3", title: "",  style:"max-width:50px"}
+    ];
+
+var RaceMatchTable = [
+    {key: "team", title:"組合", style:nameStyle},
+    {key: "match", title:"親合", style:nameStyle}
+];
+
 var ABIDB;
 var traitStatistics;
+var raceMatchList;
 var FOLLOWERDB = [];
 var MATCHDB = {};
 var followerTooltip = {};
@@ -80,10 +95,11 @@ function fetchData(dataString)
   MATCHDB = {};
   ABIDB.reset();
   traitStatistics = new AbiTraStat();
+  raceMatchList = new RaceMatchList();
   followerTooltip = {};
   genFollowerList(result);
   genStatisticData();
-
+  raceMatchList.genList();
 
   followerListC.createList(FOLLOWERDB);
   abilityListC.createList(ABIDB.list);
@@ -325,7 +341,7 @@ function genText(text, opt, jquery)
 
 function genFollowerName(f, specColor, jquery)
 {
-  return genText(f.name, {color:f.nameColor, nowrap:true, title:"$"+f.name});
+  return genText(f.name, {color:f.nameColor, nowrap:true, title:"$"+f.name}, jquery);
 }
 
 function genMacthTable_follower_abi_img(abi, countered)
@@ -464,6 +480,9 @@ function genFollowerList(dataArray)
 
     // add to traitStatistics
     traitStatistics.addFollower(follower);
+
+    // add to raceMatchList
+    raceMatchList.addFollower(follower);
 
     // add Follower tooltip
     var wrapper = $("<div></div>");
@@ -939,6 +958,105 @@ AbiTraStat.prototype.genTooltip = function ()
     this.tooltip = wrapper.html();
   });
 }
+
+// Object of RaceMatchList
+function RaceMatchList()
+{
+  var that = this;
+  this.data = {raceMatch:{}, followerList:[]};
+  $.each(RACE_MATCH, function(key) { that.data.raceMatch[key] = []; });
+}
+
+RaceMatchList.prototype.addFollower = function(f)
+{
+  var that = this;
+  var followerInList = function(who, list)
+  {
+    for (var x in list)
+      if (x.name == who.name)
+        return true;
+    return false;
+  }
+
+  var flag = {};
+  $.each(f.traits, function(key, curTrait) 
+  { 
+    if (curTrait in RACE_MATCH && ! followerInList(f, that.data.raceMatch[curTrait]))
+    {
+      var t = [];
+      $.each(f.traits, function(k, v) { if (v in RACE_MATCH) t[(v == curTrait)? "unshift":"push"](v); });
+      var followerData = {
+        name:genFollowerName(f),
+        nameInactive:genFollowerName(f) + (f.active ? "" : "*"),
+        raceName:f.raceName,
+        trait1:genImg(TRAIT[t[0]]),
+        trait2:((1 in t) ? genImg(TRAIT[t[1]]) : ""),
+        trait3:((2 in t) ? genImg(TRAIT[t[2]]) : ""),
+        traits:t
+      };
+      that.data.raceMatch[curTrait].push(followerData);
+
+      if (!followerInList(f, that.data.followerList))
+        that.data.followerList.push(followerData);
+    }
+  });
+}
+
+RaceMatchList.prototype.genMatchTable = function()
+{
+  var teams = [];
+  var followers = this.data.followerList;
+  for (var a = 0; a < followers.length; ++a)
+    for (var b = a+1; b < followers.length; ++b)
+      for (var c = b+1; c < followers.length; ++c)
+      {
+        var tmpF = [a, b, c];
+        var numF = 3;
+        var raceMatched = [];
+        $.each(tmpF, function(k, f) 
+        { 
+          $.each(followers[f].traits, function(k2, trait)
+          {
+            for (var i = 1; i < numF; ++i)
+              if (RACE_MATCH[trait] == followers[tmpF[(k+i)%numF]].raceName)
+              {
+                raceMatched.push(trait);
+                break;
+              }
+          });
+        });
+        if (raceMatched.length > 4)
+        {
+          var nameHtml = "", raceMatchedHtml = "";
+          $.each(tmpF, function(){ nameHtml += genFollowerName(followers[this]); });
+          $.each(raceMatched, function(){ raceMatchedHtml += genImg(TRAIT[this], {inList:true}); });
+          teams.push({team:nameHtml, match:raceMatchedHtml});
+        }
+      }    
+
+  var table = $("<div></div>").addClass("list-container");
+  new List(table, RaceMatchTable).createList(teams);
+  return table;
+}
+
+RaceMatchList.prototype.genList = function()
+{
+  raceMatch = this.data.raceMatch;
+  keysSorted = Object.keys(raceMatch).sort(function(a,b) { return raceMatch[b].length - raceMatch[a].length });
+  var wrapper = $("<div></div>");
+  $.each(keysSorted, function()
+  {
+    raceMatch[this].sort(function(a,b) { return b.traits.length - a.traits.length;  });
+    var list = $("<div></div>").addClass("race-block");
+    var table = $("<div></div>").addClass("list-container");
+    new List(table, RaceMatchSubTable).createList(raceMatch[this]);
+    list.append($("<div></div").text(TRAIT[this].name+" (" + raceMatch[this].length + ")"));
+    list.append(table);
+    wrapper.append(list);
+  });
+  $("#raceC").empty().append(this.genMatchTable()).append(wrapper);
+}
+
 
 var MISSIONS = [
   { type:"黑石團隊任務", list:[

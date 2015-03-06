@@ -1,9 +1,9 @@
-﻿List = function(containerSelector, header) 
+﻿List = function(containerJQuery, header) 
 {
   var thead = $("<thead></thead>");
   var tbody = $("<tbody></tbody>");
 
-  $(containerSelector).append($("<div></div>").addClass("list-table-header"))
+  containerJQuery.append($("<div></div>").addClass("list-table-header"))
     .append($("<div></div>").addClass("list-table-container").append(
           $("<table></table>").append(thead).append(tbody)));
   
