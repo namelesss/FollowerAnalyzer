@@ -31,7 +31,7 @@ var followerListTable = [
       titleClicked:sortFDB, sortSeq:["level", "iLevel", "average", "id"]},
     {key: "ability1", title: "技能1",  width:"50px"},
     {key: "ability2", title: "技能2",  width:"50px"},
-    {key: "ability3", title: "技能3",  width:"50px"},
+//    {key: "ability3", title: "技能3",  width:"50px"},
     {key: "trait1", title: "特長1",  width:"50px"},
     {key: "trait2", title: "特長2",  width:"50px"},
     {key: "trait3", title: "特長3",  width:"50px"},
@@ -663,6 +663,15 @@ function genMatchList()
   }
 }
 
+function isRaceMatch(trait, numF, raceNameByIdx)
+{
+  if (trait in RACE_MATCH)
+    for (var i = 1; i < numF; ++i)
+      if (RACE_MATCH[trait] == raceNameByIdx(i))
+        return true;
+  return false;
+}
+
 function successRate(quest, matchInfo)
 {
   var needNumFollowers = quest.numFollowers;
@@ -704,14 +713,11 @@ function successRate(quest, matchInfo)
         numDancer++;
         traitMatchList.push(trait);
       }
-      else if (trait in RACE_MATCH)
-        for (var i = 1; i < numF; ++i)
-          if (RACE_MATCH[trait] == followers[(f+i)%numF].raceName)
-          {
-            raceMatch++;
-            traitMatchList.push(trait);
-            break;
-          }
+      else if (isRaceMatch(trait, numF, function(i) { return  followers[(f+i)%numF].raceName; }))
+      {
+        raceMatch++;
+        traitMatchList.push(trait);
+      }
     }
   }
   var qTime = quest.time / Math.pow(2,numEpicMount);
@@ -973,7 +979,7 @@ RaceMatchList.prototype.addFollower = function(f)
   var followerInList = function(who, list)
   {
     for (var x in list)
-      if (x.name == who.name)
+      if (list[x].id == who.id)
         return true;
     return false;
   }
@@ -986,6 +992,8 @@ RaceMatchList.prototype.addFollower = function(f)
       var t = [];
       $.each(f.traits, function(k, v) { if (v in RACE_MATCH) t[(v == curTrait)? "unshift":"push"](v); });
       var followerData = {
+        id:f.id,
+        count:0,
         name:genFollowerName(f),
         nameInactive:genFollowerName(f) + (f.active ? "" : "*"),
         raceName:f.raceName,
@@ -1002,7 +1010,7 @@ RaceMatchList.prototype.addFollower = function(f)
   });
 }
 
-RaceMatchList.prototype.genMatchTable = function()
+RaceMatchList.prototype.genCloseMatchTable = function()
 {
   var teams = [];
   var followers = this.data.followerList;
@@ -1010,30 +1018,33 @@ RaceMatchList.prototype.genMatchTable = function()
     for (var b = a+1; b < followers.length; ++b)
       for (var c = b+1; c < followers.length; ++c)
       {
-        var tmpF = [a, b, c];
+        var tmpF = [followers[a], followers[b], followers[c]];
         var numF = 3;
         var raceMatched = [];
-        $.each(tmpF, function(k, f) 
+        $.each(tmpF, function(k) 
         { 
-          $.each(followers[f].traits, function(k2, trait)
+          $.each(this.traits, function(k2, trait)
           {
-            for (var i = 1; i < numF; ++i)
-              if (RACE_MATCH[trait] == followers[tmpF[(k+i)%numF]].raceName)
-              {
-                raceMatched.push(trait);
-                break;
-              }
+            if (isRaceMatch(trait, numF, function(i) { return tmpF[(k+i)%numF].raceName; }))
+              raceMatched.push(trait);
           });
         });
         if (raceMatched.length > 4)
         {
-          var nameHtml = "", raceMatchedHtml = "";
-          $.each(tmpF, function(){ nameHtml += genFollowerName(followers[this]); });
+          var raceMatchedHtml = "";
+          $.each(tmpF, function(){ this.count++; });
           $.each(raceMatched, function(){ raceMatchedHtml += genImg(TRAIT[this], {inList:true}); });
-          teams.push({team:nameHtml, match:raceMatchedHtml});
+          teams.push({teamF:tmpF.slice(0), match:raceMatchedHtml});
         }
       }    
 
+  $.each(teams, function()
+  {
+    var nameHtml = "";
+    this.teamF.sort(function(a,b) { return  (a.count == b.count) ? b.id - a.id : b.count - a.count;});
+    $.each(this.teamF, function(){ nameHtml += this.name + " "; });
+    this.team = nameHtml;
+  });
   var table = $("<div></div>").addClass("list-container");
   new List(table, RaceMatchTable).createList(teams);
   return table;
@@ -1054,7 +1065,9 @@ RaceMatchList.prototype.genList = function()
     list.append(table);
     wrapper.append(list);
   });
-  $("#raceC").empty().append(this.genMatchTable()).append(wrapper);
+  $("#raceC").empty()
+    .append(this.genCloseMatchTable())
+    .append(wrapper);
 }
 
 
@@ -1213,7 +1226,7 @@ var TRAIT = {
 60:{name:"製皮", img:"trade_leatherworking"},
 78:{name:"孤狼", img:"ability_shaman_freedomwolf"},
 48:{name:"沼澤行者", img:"achievement_zone_sholazar_03"},
-47:{name:"城市居民", img:"achievement_zone_gilneas_02"},
+47:{name:"頂尖刺客", img:"ability_rogue_deadliness"},
 253:{name:"機械狂", img:"achievement_boss_xt002deconstructor_01"},
 248:{name:"導師", img:"trade_archaeology_draenei_tome"},
 52:{name:"採礦", img:"trade_mining"},
@@ -1250,7 +1263,7 @@ var RACE = {
 237:{a:{name:"艾芮碧雅‧冬喚", race:"夜精靈"}, h:{name:"托爾娃‧霜心", race:"獸人"}},
 429:{a:{name:"奧德菈‧石盾", race:"矮人"}, h:{name:"刃織者璇恩", race:"熊貓人"}},
 280:{a:{name:"貝絲蒂娜‧莫朗", race:"狼人"}, h:{name:"蔻格艾‧瞄準", race:"哥布林"}},
-279:{a:{name:"貝倫雷索‧迅顫", race:"夜精靈"}, h:{name:"朗基羅", race:"食人妖"}},
+279:{a:{name:"布倫‧速擊", race:"矮人"}, h:{name:"朗基羅", race:"食人妖"}},
 417:{a:{name:"布莉姬特‧希克斯", race:"人類"}, h:{name:"茉蒂娜", race:"獸人"}},
 364:{a:{name:"凱爾娃娜‧暮行者", race:"夜精靈"}, h:{name:"珂薇菈‧血緣", race:"獸人"}},
 400:{a:{name:"卡雷柏‧韋伯", race:"人類"}, h:{name:"諾格魯克‧朽顱", race:"獸人"}},
@@ -1536,7 +1549,7 @@ var RACE_MATCH = {
 63:RACE[455].a.race,
 64:RACE[177].a.race,
 65:RACE[382].a.race,
-66:RACE[279].a.race,
+66:RACE[217].a.race,
 67:RACE[459].a.race,
 68:RACE[250].a.race,
 69:RACE[436].a.race
