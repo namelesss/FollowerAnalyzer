@@ -695,6 +695,7 @@ function successRate(quest, matchInfo)
     var abiMatch = parseInt((matchInfo.matchedFlag[f] + 1) / 2);
     followerP += 3 * abiMatch * llv + olv;
     // Normal Trait Match
+    var personalNumDancer = 0;
     for (var t in followers[f].traits)
     {
       var trait = followers[f].traits[t];
@@ -709,16 +710,14 @@ function successRate(quest, matchInfo)
       else if (trait == 77) // Burst of Power
         numBurstPower++;
       else if (trait == 232 && matchInfo.unMatchList.indexOf(6) >= 0) // Dancer
-      {
-        numDancer++;
-        traitMatchList.push(trait);
-      }
+        personalNumDancer++;
       else if (isRaceMatch(trait, numF, function(i) { return  followers[(f+i)%numF].raceName; }))
       {
         raceMatch++;
         traitMatchList.push(trait);
       }
     }
+    numDancer = (personalNumDancer > numDancer) ? personalNumDancer : numDancer;
   }
   var qTime = quest.time / Math.pow(2,numEpicMount);
   if (qTime > 7*60)
@@ -730,12 +729,16 @@ function successRate(quest, matchInfo)
   var traitMatch = traitMatchList.length; // race included
   for (var i = 0; i < numEpicMount; ++i)
     traitMatchList.push(221);
+  /* Dancer: if more than two Dancer matched, only 3*P rate will provide. (assumption)*/
+  for (var i = 0; i < numDancer; ++i)
+    traitMatchList.push(232);
+  numDancer = (numDancer > 1) ? 1.5 : numDancer;
 
   matchInfo.traitMatchList = traitMatchList;
   matchInfo.questTime = qTime;
   matchInfo.qILV = needILV;
   
-  return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 0.5) / base);
+  return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 2) / base);
 }
 
 function matchEncounter(threats, f)
