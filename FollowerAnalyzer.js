@@ -1019,34 +1019,89 @@ RaceMatchList.prototype.genCloseMatchTable = function()
       for (var c = b+1; c < followers.length; ++c)
       {
         var tmpF = [followers[a], followers[b], followers[c]];
-        var numF = 3;
-        var raceMatched = [];
+        var numF = tmpF.length;
+        var raceMatched = {};
+        var raceMatchedCount = 0;
         $.each(tmpF, function(k) 
-        { 
+        {
+          var id = this.id;
+          raceMatched[id] = [];
           $.each(this.traits, function(k2, trait)
           {
             if (isRaceMatch(trait, numF, function(i) { return tmpF[(k+i)%numF].raceName; }))
-              raceMatched.push(trait);
+            {
+              raceMatched[id].push(trait);
+              raceMatchedCount++;
+            }
           });
         });
-        if (raceMatched.length > 4)
+        if (raceMatchedCount > 4)
         {
-          var raceMatchedHtml = "";
           $.each(tmpF, function(){ this.count++; });
-          $.each(raceMatched, function(){ raceMatchedHtml += genImg(TRAIT[this], {inList:true}); });
-          teams.push({teamF:tmpF.slice(0), match:raceMatchedHtml});
+          teams.push({teamF:tmpF.slice(0), mask:[1,1,1], raceMatched:raceMatched, matchCount:raceMatchedCount});
         }
-      }    
-
+      }
+  // sort match List
+  $.each(teams, function(){ this.teamF.sort(function(a,b) { return  (a.count == b.count) ? b.idx - a.idx : b.count - a.count;}); });
+  teams.sort(function(a,b) 
+  {
+    if (a.matchCount != b.matchCount)
+      return b.matchCount - a.matchCount;
+    else if (a.teamF[0].count != b.teamF[0].count)
+      return b.teamF[0].count - a.teamF[0].count;
+    else if (a.teamF[0].id != b.teamF[0].id)
+      return b.teamF[0].id - a.teamF[0].id;
+    else if (a.teamF[1].count != b.teamF[1].count)
+      return b.teamF[1].count - a.teamF[1].count;
+    else if (a.teamF[1].id != b.teamF[1].id)
+      return b.teamF[1].id - a.teamF[1].id;
+  });
+  
+  var cur = [];
   $.each(teams, function()
   {
-    var nameHtml = "";
-    this.teamF.sort(function(a,b) { return  (a.count == b.count) ? b.id - a.id : b.count - a.count;});
-    $.each(this.teamF, function(){ nameHtml += this.name + " "; });
-    this.team = nameHtml;
+    var raceMatched = this.raceMatched;
+    var raceMatchedHtml = "";
+    $.each(this.teamF, function ()
+    {
+      if (raceMatchedHtml != "")
+        raceMatchedHtml += " | ";
+      $.each(raceMatched[this.id], function(k, trait)
+      {
+        raceMatchedHtml += genImg(TRAIT[this], {inList:true});
+      });
+    });
+    this.match = raceMatchedHtml;
+
+    // calculate rowspan
+    for (var i = 0; i < 2; ++i)
+    {
+      if (cur[i] && cur[i].teamF[i].id == this.teamF[i].id)
+      {
+        cur[i].mask[i] += 1;
+        this.mask[i] = 0;
+      }
+      else
+          cur[i] = this;
+    }
   });
-  var table = $("<div></div>").addClass("list-container");
-  new List(table, RaceMatchTable).createList(teams);
+
+  var table = $("<table></table>").addClass("raceMatch");
+  $.each(teams, function()
+  {
+    var mask = this.mask;
+    var tr = $("<tr></tr>");
+    $.each(this.teamF, function(idx)
+    {
+      var td = $("<td></td>").html(this.name + "(" + this.count + ")");
+      if (mask[idx] > 1)
+        td.attr("rowspan", mask[idx]);
+      if (mask[idx] > 0)
+        tr.append(td); 
+    });
+    tr.append($("<td></td>").html(this.match));
+    table.append(tr);
+  });
   return table;
 }
 
@@ -1067,6 +1122,7 @@ RaceMatchList.prototype.genList = function()
   });
   $("#raceC").empty()
     .append(this.genCloseMatchTable())
+    .append($("<hr>"))
     .append(wrapper);
 }
 
