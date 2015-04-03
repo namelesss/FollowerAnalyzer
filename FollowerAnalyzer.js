@@ -62,7 +62,8 @@ var RaceMatchTable = [
 
 var Options = {
   faction:"a",
-  only100:true
+  only100:true,
+  ilv:"required",
 };
 var ABIDB;
 var traitStatistics;
@@ -154,7 +155,6 @@ function loadFileFromStorageEntry()
   });
 }
 
-var ilvOption = "required";
 $(function() { 
   // $xxx = name
   // %xxx = trait
@@ -212,7 +212,7 @@ $(function() {
 
   $("input[name=ilv]").change(function() 
   {
-    ilvOption = $("input[name=ilv]:checked").val();
+    Options.ilv = $("input[name=ilv]:checked").val();
     MATCHDB = {};
     selectMission(curMission.type);
   });
@@ -257,6 +257,7 @@ function selectMission(type)
 var body = document.getElementById("body-for-padding");
 
 $("#missionType").change(function() { selectMission($("#missionType").val())});
+
 $(document).ready(function() {
   if (launchData && launchData.items && launchData.items[0]) 
     loadFileEntry(launchData.items[0].entry);
@@ -692,8 +693,8 @@ function successRate(quest, matchInfo)
   {
     // Follower Contribute
     var calILV = needILV;
-    if (ilvOption == "current") calILV = followers[f].iLevel;
-    if (ilvOption == "highest") calILV = 675;
+    if (Options.ilv == "current") calILV = followers[f].iLevel;
+    if (Options.ilv == "highest") calILV = 675;
     var olv = (calILV > needILV) ? 1 + Math.min(calILV - needILV, 15)/30 : 1;
     var llv = (calILV < needILV) ? 1 - Math.min(needILV - calILV, 30)/15 : 1;
     var abiMatch = parseInt((matchInfo.matchedFlag[f] + 1) / 2);
