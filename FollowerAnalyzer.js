@@ -60,6 +60,9 @@ var RaceMatchTable = [
     {key: "match", title:"親合", style:nameStyle}
 ];
 
+var Options = {
+  faction:"a"
+};
 var ABIDB;
 var traitStatistics;
 var raceMatchList;
@@ -92,6 +95,7 @@ function fetchData(dataString)
 
   // Fetch Data
   if (result.length < 2) return;
+  $("#coverMsg").show(); // Additional Show far before selectMission()
   MATCHDB = {};
   ABIDB.reset();
   traitStatistics = new AbiTraStat();
@@ -137,46 +141,17 @@ function loadFileFromStorageEntry()
   chrome.storage.local.get('chosenFile', function(items) 
   {
     if (items.chosenFile) 
-    {
       chrome.fileSystem.isRestorable(items.chosenFile, function(bIsRestorable) 
       {
         if (bIsRestorable) 
-        {
-          console.info("Restoring " + items.chosenFile);
           chrome.fileSystem.restoreEntry(items.chosenFile, function(chosenEntry) 
           {
             if (chosenEntry) 
-            {
               loadFileEntry(chosenEntry);
-            }
           });
-        }
       });
-    }
   });
 }
-
-$("#refresh").click(function(e)
-{
-  loadFileFromStorageEntry();
-});
-
-$("#choose_file").click(function(e) 
-{
-  chrome.fileSystem.chooseEntry({type: 'openFile', 
-                                 accepts: [{extensions: ["csv"]}],
-                                 acceptsAllTypes: true }, function(theEntry) 
-  {
-    if (chrome.runtime.lastError || !theEntry) 
-    {
-      // No file selected
-      return;
-    }
-    // use local storage to retain access to this file
-    chrome.storage.local.set({'chosenFile': chrome.fileSystem.retainEntry(theEntry)});
-    loadFileEntry(theEntry);
-  });
-});
 
 var ilvOption = "required";
 $(function() { 
@@ -196,6 +171,24 @@ $(function() {
         return title;
     }  
   }); 
+  
+  $("#refresh").click(function(e){ loadFileFromStorageEntry(); });
+
+  $("#choose_file").click(function(e) 
+  {
+    chrome.fileSystem.chooseEntry({type: 'openFile', 
+                                   accepts: [{extensions: ["csv"]}],
+                                   acceptsAllTypes: true }, function(theEntry) 
+    {
+      // No file selected
+      if (chrome.runtime.lastError || !theEntry) 
+        return;
+
+      // use local storage to retain access to this file
+      chrome.storage.local.set({'chosenFile': chrome.fileSystem.retainEntry(theEntry)});
+      loadFileEntry(theEntry);
+    });
+  });
 
   $('#open').click(function()
   {
@@ -265,13 +258,14 @@ var body = document.getElementById("body-for-padding");
 $("#missionType").change(function() { selectMission($("#missionType").val())});
 $(document).ready(function() {
   if (launchData && launchData.items && launchData.items[0]) 
-  {
     loadFileEntry(launchData.items[0].entry);
-  } 
   else 
-  {
     loadFileFromStorageEntry();
-  }
+
+  // Init RACE_MATCH array
+  $.each(RACE_SAMPLE_ID[Options.faction], function(trait, id) { RACE_MATCH[trait] = RACE[id][Options.faction].race; });
+
+  //
   for (var i in MISSIONS)
     $("#missionType").append($('<option></option>').text(MISSIONS[i].type));
   curMission = MISSIONS[0]
@@ -288,7 +282,7 @@ $(document).ready(function() {
 function genStatisticBarIcon(img, list)
 {
   var bar = $("<div></div>").addClass("statisticBar");
-  $.each(RACE_MATCH, function(index) { bar.append(genStatisticIcon(TRAIT[index]))});
+  $.each(list, function(index) { bar.append(genStatisticIcon(TRAIT[index]))});
   var icon = $("<div></div>")
     .addClass("statisticBarIcon")
     .css("background-image", "url('img/" + img + ".jpg')")
@@ -463,8 +457,8 @@ function genFollowerList(dataArray)
 
     follower.inactive = follower.active ? "" :"☆" ;
     follower.nameColor = QUALITY[follower.quality];
-    follower.name = (follower.id in RACE) ? RACE[follower.id].a.name : follower.id;
-    follower.raceName = (follower.id in RACE) ? RACE[follower.id].a.race : follower.race;
+    follower.name = (follower.id in RACE) ? RACE[follower.id][Options.faction].name : follower.id;
+    follower.raceName = (follower.id in RACE) ? RACE[follower.id][Options.faction].race : follower.race;
     follower.specName = SPEC[follower.spec].name;
     follower.ability1 = genImg(ABILITY[abi[0]]);
     follower.ability2 = (1 in abi) ? genImg(ABILITY[abi[1]]) : "";
@@ -663,12 +657,20 @@ function genMatchList()
   }
 }
 
-function isRaceMatch(trait, numF, raceNameByIdx)
+function isRaceMatch(trait, numF, followerByIdx)
 {
-  if (trait in RACE_MATCH)
+  if (trait in RACE_SAMPLE_ID.u)
+  {
+  }
+  else if (trait in RACE_MATCH)
     for (var i = 1; i < numF; ++i)
-      if (RACE_MATCH[trait] == raceNameByIdx(i))
+    {
+      var f = followerByIdx(i);
+      if (f.id == 466)
+        return (trait == 67 && Options.faction == "a") || (trait == 70 && Options.faction == "h");
+      else if (RACE_MATCH[trait] == f.raceName)
         return true;
+    }
   return false;
 }
 
@@ -711,7 +713,7 @@ function successRate(quest, matchInfo)
         numBurstPower++;
       else if (trait == 232 && matchInfo.unMatchList.indexOf(6) >= 0) // Dancer
         personalNumDancer++;
-      else if (isRaceMatch(trait, numF, function(i) { return  followers[(f+i)%numF].raceName; }))
+      else if (isRaceMatch(trait, numF, function(i) { return  followers[(f+i)%numF]; }))
       {
         raceMatch++;
         traitMatchList.push(trait);
@@ -1031,7 +1033,7 @@ RaceMatchList.prototype.genCloseMatchTable = function()
           raceMatched[id] = [];
           $.each(this.traits, function(k2, trait)
           {
-            if (isRaceMatch(trait, numF, function(i) { return tmpF[(k+i)%numF].raceName; }))
+            if (isRaceMatch(trait, numF, function(i) { return tmpF[(k+i)%numF]; }))
             {
               raceMatched[id].push(trait);
               raceMatchedCount++;
@@ -1196,6 +1198,14 @@ var QUALITY = [
   "#a335ee",
   "#ff8000"
 ];
+
+var RACE_SAMPLE_ID = {
+  a:{ 63:455, 64:177, 65:382, 66:217, 67:459, 68:250, 69:436 },
+  h:{ 69:429, 70:382, 71:345, 72:333, 73:351, 74:207, 75:406 },
+  u:{ 252:[32, 189, 193], 253:[168, 171], 254:[224, 462, 218], 255:[170, 219, 203] } 
+}; 
+
+var RACE_MATCH = {}; 
 // ---------Copy from id convert table------------
 var ABILITY = {
 1:{name:"狂野侵略", img:"spell_nature_reincarnation"},
@@ -1603,14 +1613,5 @@ var RACE = {
 465:{a:{name:"哈里遜‧瓊斯", race:"人類"}, h:{name:"哈里遜‧瓊斯", race:"人類"}},
 466:{a:{name:"迦羅娜‧半血", race:"獸人"}, h:{name:"迦羅娜‧半血", race:"獸人"}},
 467:{a:{name:"風濤", race:"熊貓人"}, h:{name:"風濤", race:"熊貓人"}}
-};
-var RACE_MATCH = {
-63:RACE[455].a.race,
-64:RACE[177].a.race,
-65:RACE[382].a.race,
-66:RACE[217].a.race,
-67:RACE[459].a.race,
-68:RACE[250].a.race,
-69:RACE[436].a.race
 };
 
