@@ -61,7 +61,8 @@ var RaceMatchTable = [
 ];
 
 var Options = {
-  faction:"a"
+  faction:"a",
+  only100:true
 };
 var ABIDB;
 var traitStatistics;
@@ -682,6 +683,7 @@ function successRate(quest, matchInfo)
   var base = quest.threats.length * 3 + needNumFollowers;
   var traitMatchList = [];
   var numEpicMount = 0, numHighStamina = 0, numBurstPower = 0, numDancer = 0;
+  var numMasterAssassin = 0;
 
   var raceMatch = 0;
   var followerP = 0;
@@ -701,22 +703,32 @@ function successRate(quest, matchInfo)
     for (var t in followers[f].traits)
     {
       var trait = followers[f].traits[t];
-      if (trait == quest.type) // Encounter Type Match
-        traitMatchList.push(quest.type);
-      else if (trait == 201) // Combat Experience
-        traitMatchList.push(201);
-      else if (trait == 221) // Epic Mount
-        numEpicMount++;
-      else if (trait == 76) // High Stamina
-        numHighStamina++;
-      else if (trait == 77) // Burst of Power
-        numBurstPower++;
-      else if (trait == 232 && matchInfo.unMatchList.indexOf(6) >= 0) // Dancer
-        personalNumDancer++;
-      else if (isRaceMatch(trait, numF, function(i) { return  followers[(f+i)%numF]; }))
+      switch (trait)
       {
-        raceMatch++;
-        traitMatchList.push(trait);
+        case quest.type: // Encounter Type Match
+          traitMatchList.push(quest.type); break;
+        case 201: // Combat Experience
+          traitMatchList.push(201); break;
+        case 47: // Master Assassin
+          traitMatchList.push(47);
+          numMasterAssassin++;
+          break;
+        case 221: // Epic Mount
+          numEpicMount++; break;
+        case 76: // High Stamina
+          numHighStamina++; break;
+        case 77: // Burst of Power
+          numBurstPower++; break;
+        case 232:
+          if (matchInfo.unMatchList.indexOf(6) >= 0) // Dancer
+            personalNumDancer++; 
+          break;
+        default:
+          if (isRaceMatch(trait, numF, function(i) { return  followers[(f+i)%numF]; }))
+          {
+            raceMatch++;
+            traitMatchList.push(trait);
+          }
       }
     }
     numDancer = (personalNumDancer > numDancer) ? personalNumDancer : numDancer;
@@ -740,7 +752,7 @@ function successRate(quest, matchInfo)
   matchInfo.questTime = qTime;
   matchInfo.qILV = needILV;
   
-  return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 2) / base);
+  return (matchInfo.rate = (followerP + traitMatch + raceMatch * 0.5 + numDancer * 2 + numMasterAssassin * 2) / base);
 }
 
 function matchEncounter(threats, f)
@@ -760,12 +772,11 @@ function matchEncounter(threats, f)
   return matched;
 }
 
-var only100 = true;
 function doMatchMissionRec(idx, start, quest, threshold, match, tmpData)
 {
   for (var me = start; me < FOLLOWERDB.length; ++me)
   {
-    if (only100 && FOLLOWERDB[me].level < 100) continue;
+    if (Options.only100 && FOLLOWERDB[me].level < 100) continue;
     tmpData.matchFlags[idx] = matchEncounter(tmpData.encounter, FOLLOWERDB[me]);
     tmpData.team.push(FOLLOWERDB[me]);
 
