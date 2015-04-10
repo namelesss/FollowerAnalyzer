@@ -347,3 +347,12 @@ RaceMatchList.prototype.genList = function()
     .append(wrapper);
 }
 
+function successRateTrio(quest, matchInfo)
+{
+  var needNumFollowers = quest.numFollowers;
+  var needILV = quest.iLevel;
+  var numF = quest.numFollowers;
+  var base = quest.threats.length * 3 + needNumFollowers;
+  var traitMatchList = [];
+
+}

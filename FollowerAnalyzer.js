@@ -8,6 +8,7 @@ var ABIDB;
 var traitStatistics;
 var raceMatchList;
 var FOLLOWERDB = [];
+var TrioDB = {};
 var MATCHDB = {};
 var followerTooltip = {};
 var curMission;
@@ -25,6 +26,7 @@ function fetchData(dataString)
   traitStatistics.reset();  
   raceMatchList = new RaceMatchList();
   followerTooltip = {};
+
   genFollowerList(result);
   traitStatistics.genStatisticData();
   raceMatchList.genList();
@@ -167,20 +169,6 @@ function genFollowerList(dataArray)
   }
 }
 
-function genStatisticData()
-{
-  // Race bar
-  $(".statisticBarIcon").find("#count").text("");
-  $(".statisticIcon").each(function () 
-  { 
-    var title = this.title.slice(1);
-    var count = traitStatistics.get(title).length;
-    $(this).text(count || "");
-    var ele = $(this).parents(".statisticBarIcon").find("#count");
-    if (ele) ele.text(parseInt(ele.text() || 0) + count);
-  });
-  traitStatistics.genTooltip();
-}
 
 function calMatchDB(matchList)
 {
@@ -489,6 +477,67 @@ function doMatchMission(quest, threshold)
   doMatchMissionRec(0, 0, quest, threshold, match, tmpData);
   
   return match;
+}
+
+function getTraits(team)
+{
+  var trais = {
+    numEpicMount:0, numHighStamina:0, 
+    numBurstPower:0, numDancer:0,
+    numMasterAssassin:0,
+    numCombatExperience:0,
+    numEnvironment:0,
+    env:[],race:[]
+  }
+
+  for (var f in team)
+  {
+    var personalNumDancer = 0;
+    for (var t in team[f].traits)
+    {
+      var trait = team[f].traits[t];
+      switch (trait)
+      {
+        case 45:case 8:case 46:case 48:case 7:case 44:case 49:case 9: // Environment 
+        case 37:case  36:case 41:case 40:case 38:case 4:case 39:case 43:case 42: // Slayer
+          traits.env.push(quest.type); break;
+        case 201: // Combat Experience
+          trais.numCombatExperience++; break;
+        case 47: // Master Assassin
+          trais.numMasterAssassin++; break;
+        case 221: // Epic Mount
+          trais.numEpicMount++; break;
+        case 76: // High Stamina
+          trais.numHighStamina++; break;
+        case 77: // Burst of Power
+          trais.numBurstPower++; break;
+        case 232:  // Dancer 
+          trais.personalNumDancer++; break;
+        default:
+          if (isRaceMatch(trait, numF, function(i) { return  team[(f+i)%numF]; }))
+            traits.race.push(trait);
+      }
+    }
+    trais.numDancer = (personalNumDancer > trais.numDancer) ? personalNumDancer : trais.numDancer;
+  }
+  return traits;
+}
+
+function followerTrio()
+{
+  this.trio = {};
+
+  var sortedf = [];
+  $.each(FOLLOWERDB, function (key) { sortedf.push(key); });
+  sortedf.sort(function(a,b) { return FOLLOWERDB[a].id - FOLLOWERDB[b].id; });
+  for (var a = 0; a < sortedf.length; ++a)
+    for (var b = a+1; b < sortedf.length; ++b)
+      for (var c = b+1; c < sortedf.length; ++c)
+      {
+        var team = [FOLLOWERDB[sortedf[a]], FOLLOWERDB[sortedf[b]], FOLLOWERDB[sortedf[c]]];
+        var teamTraits = getTraits(team);
+        trioDB[team] = {team:team, teamTraits:teamTraits};
+      }
 }
 
 var MISSIONS = [
